@@ -26,6 +26,7 @@ class Screen_BB2():
         self.main_box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL)
         self.set_menu()
         self.set_drawing_box()
+        self.set_resource_box()
 
     def window_change(self, window):
         self.window_width = window.get_allocation().width
@@ -41,6 +42,12 @@ class Screen_BB2():
         self.drawing = Drawing(self.window)
         drawing_box = self.drawing.return_drawing_box()
         self.main_box.pack_start(drawing_box, False, False, spacing)
+
+    def set_resource_box(self):
+        #spacing = int(self.screen_width * 0.01)
+        self.resource = ResourcesPanel(self.window)
+        self.resource_box = self.resource.return_resource_box()
+        self.main_box.pack_start(self.resource_box, False, False, 0)
 
     def return_main_box(self):
         return self.main_box
@@ -71,11 +78,13 @@ class Drawing():
         drawing_height = int(self.screen_height * 0.8)
         
         self.main_drawing = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.secondary_drawing = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.main_drawing.pack_start(self.secondary_drawing, True, True, 0)
         self.drawing_box = Gtk.Box()
         self.drawing_box.set_name("DRAWING_BOX")
         self.drawing_box.set_size_request(drawing_width, drawing_height)
-        self.main_drawing.pack_start(self.drawing_box, True, False, 0)
-
+        #self.main_drawing.pack_start(self.drawing_box, True, False, 0)
+        self.secondary_drawing.pack_start(self.drawing_box, True, False, 0)
         self.g_ex = None
         self.g_ey = None
         self.pix = None
@@ -117,6 +126,63 @@ class Drawing():
 
 
 
+class ResourcesPanel():
+    def __init__(self, window):
+        self.window = window
+        self.screen = window.get_screen()
+        self.screen_width = self.screen.get_width()
+        self.screen_height = self.screen.get_height()
+
+        box_width = int(self.screen_width*0.15)
+        self.resource_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.resource_box.set_size_request(box_width, 0)
+
+        self.net_box()
+        self.source_images_box()
+        self.set_resource_section()
+
+    def net_box(self):
+        box_height = int(self.screen_height * 0.3)
+        self.deep_learning_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.deep_learning_box.set_size_request(0, box_height)
+        self.resource_box.pack_start(self.deep_learning_box, False, False, 0)
+
+    def set_resource_section(self):
+        resources_box = Gtk.Box()
+        images_path_label = Gtk.Label("Images Path:")
+        filechooser = Gtk.Button("Choose Folder...")
+        resources_box.pack_start(images_path_label, False, False, 0)
+        resources_box.pack_start(filechooser, False, False, 0)
+        self.deep_learning_box.pack_start(resources_box, False, False, 0)
+
+        filechooser.connect('clicked', self.set_dialog)
+
+        #dialog = Gtk.FileChooserDialog('Please Choose a folder', None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        
+        #self.window.add_filters(dialog)        
+    def set_dialog(self, button):
+        dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog.run()
+        image_folder_path = dialog.get_filename()
+        dialog.destroy()
+        print("SelectedPath:", image_folder_path)
+        btn_text = image_folder_path.split('/')[-1]
+        button.set_label(btn_text)
+        
+
+
+    def source_images_box(self):
+        scroll_height = int(self.screen_height * 0.6)
+        images_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        scroll_window = Gtk.ScrolledWindow(None, None)
+        scroll_window.set_size_request(0, scroll_height)
+        scroll_window.set_border_width(0)
+        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+        scroll_window.add(images_box)
+        self.resource_box.pack_start(scroll_window, False, False, 0)
+    
+    def return_resource_box(self):
+        return self.resource_box
 
 
 
@@ -125,6 +191,8 @@ class Drawing():
 
 
 
+
+"""
 class Screen_BB():
     def __init__(self, window):
         self.first_pressed = False
@@ -203,6 +271,6 @@ class Screen_BB():
     def return_main_box(self):
         return self.main_box
 
-
+"""
 
 
