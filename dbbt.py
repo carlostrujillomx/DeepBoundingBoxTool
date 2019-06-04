@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gdk, GObject
 
 import bb_screen
 
-css_file = 'clint_style.css'
+css_file = 'dbbt_style.css'
 
 cssProvider = Gtk.CssProvider()
 cssProvider.load_from_path(css_file)
