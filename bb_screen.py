@@ -42,6 +42,7 @@ class Screen_BB2():
         spacing = int(self.screen_width * 0.01)
         self.drawing = Drawing(self.window)
         drawing_box = self.drawing.return_drawing_box()
+        self.darea = self.drawing.get_drawing_area()
         self.main_box.pack_start(drawing_box, False, False, spacing)
 
     def set_resource_box(self):
@@ -49,6 +50,7 @@ class Screen_BB2():
         self.resource = ResourcesPanel(self.window)
         self.resource_box = self.resource.return_resource_box()
         self.main_box.pack_start(self.resource_box, False, False, 0)
+        self.resource.wrap_drawing_area(self.darea)
 
     def return_main_box(self):
         return self.main_box
@@ -95,7 +97,7 @@ class Drawing():
         self.darea.set_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
 
         self.darea.connect('motion-notify-event', self.motion_event)
-        self.darea.connect('button-press-event', self.drawing_clicked)
+        #self.darea.connect('button-press-event', self.drawing_clicked)
         self.darea.connect('draw', self.on_draw)
     
     def motion_event(self, w, e):
@@ -121,10 +123,11 @@ class Drawing():
             cr.fill()
             cr.stroke()
 
+    def get_drawing_area(self):
+        return self.darea
+
     def return_drawing_box(self):
         return self.main_drawing
-
-
 
 
 class ResourcesPanel():
@@ -137,7 +140,8 @@ class ResourcesPanel():
         box_width = int(self.screen_width*0.15)
         self.resource_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         self.resource_box.set_size_request(box_width, 0)
-
+        
+        self.pix = None
         self.net_box()
         self.source_images_box()
         self.set_resource_section()
@@ -159,10 +163,6 @@ class ResourcesPanel():
 
         filechooser.connect('clicked', self.set_dialog)
 
-        #dialog = Gtk.FileChooserDialog('Please Choose a folder', None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
-        
-        #self.window.add_filters(dialog)      
-
 
     def set_dialog(self, button):
         dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
@@ -177,19 +177,16 @@ class ResourcesPanel():
         
     def source_images_box(self):
         scroll_height = int(self.screen_height * 0.6)
-        #self.images_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         self.scroll_window = Gtk.ScrolledWindow(None, None)
         self.scroll_window.set_size_request(0, scroll_height)
         self.scroll_window.set_border_width(0)
         self.scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
-        #scroll_window.add(self.images_box)
         self.resource_box.pack_start(self.scroll_window, False, False, 0)
     
     def set_list(self, path):
         files = listdir(path)
         print(files)
         listmodel = Gtk.ListStore(str)
-        #view = Gtk.TreeView(model = listmodel)
         view = Gtk.TreeView(model = listmodel)
         renderer_text = Gtk.CellRendererText()
         column_text = Gtk.TreeViewColumn("Image", renderer_text, text=0)
@@ -197,13 +194,26 @@ class ResourcesPanel():
 
         for file_ in files:
             listmodel.append([file_])
-            #print('listmodel:', type(file_))
-
-        
+            
         self.scroll_window.add(view)
         self.scroll_window.show_all()
-        #self.images_box.pack_start(view, False, False, 0)
-        #self.images_box.show_all()
+
+        self.set_darea(path, files)
+
+    def wrap_drawing_area(self, drarea):
+        self.darea = drarea
+        self.darea.connect('draw', self.on_draw)
+
+    def set_darea(self, path, files):
+        self.pix = GdkPixbuf.Pixbuf.new_from_file(path+'/'+files[0])
+        self.darea.queue_draw()
+
+    def on_draw(self, w, cr):
+        if self.pix is not None:
+            Gdk.cairo_set_source_pixbuf(cr, self.pix, 0, 0)
+            cr.paint()
+            
+
 
     def return_resource_box(self):
         return self.resource_box
