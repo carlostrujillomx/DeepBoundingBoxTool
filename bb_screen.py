@@ -6,6 +6,7 @@ import math
 
 import cv2
 
+from os import listdir
 
 class MouseButtons:
     LEFT_BUTTON = 1
@@ -148,18 +149,21 @@ class ResourcesPanel():
         self.resource_box.pack_start(self.deep_learning_box, False, False, 0)
 
     def set_resource_section(self):
+        spacing = int(self.screen_height * 0.1)
         resources_box = Gtk.Box()
         images_path_label = Gtk.Label("Images Path:")
         filechooser = Gtk.Button("Choose Folder...")
-        resources_box.pack_start(images_path_label, False, False, 0)
-        resources_box.pack_start(filechooser, False, False, 0)
-        self.deep_learning_box.pack_start(resources_box, False, False, 0)
+        resources_box.pack_start(images_path_label, True, False, 0)
+        resources_box.pack_start(filechooser, True, False, 0)
+        self.deep_learning_box.pack_start(resources_box, False, False, spacing)
 
         filechooser.connect('clicked', self.set_dialog)
 
         #dialog = Gtk.FileChooserDialog('Please Choose a folder', None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         
-        #self.window.add_filters(dialog)        
+        #self.window.add_filters(dialog)      
+
+
     def set_dialog(self, button):
         dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         dialog.run()
@@ -168,19 +172,39 @@ class ResourcesPanel():
         print("SelectedPath:", image_folder_path)
         btn_text = image_folder_path.split('/')[-1]
         button.set_label(btn_text)
+
+        self.set_list(image_folder_path)
         
-
-
     def source_images_box(self):
         scroll_height = int(self.screen_height * 0.6)
-        images_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
-        scroll_window = Gtk.ScrolledWindow(None, None)
-        scroll_window.set_size_request(0, scroll_height)
-        scroll_window.set_border_width(0)
-        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
-        scroll_window.add(images_box)
-        self.resource_box.pack_start(scroll_window, False, False, 0)
+        #self.images_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.scroll_window = Gtk.ScrolledWindow(None, None)
+        self.scroll_window.set_size_request(0, scroll_height)
+        self.scroll_window.set_border_width(0)
+        self.scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+        #scroll_window.add(self.images_box)
+        self.resource_box.pack_start(self.scroll_window, False, False, 0)
     
+    def set_list(self, path):
+        files = listdir(path)
+        print(files)
+        listmodel = Gtk.ListStore(str)
+        #view = Gtk.TreeView(model = listmodel)
+        view = Gtk.TreeView(model = listmodel)
+        renderer_text = Gtk.CellRendererText()
+        column_text = Gtk.TreeViewColumn("Image", renderer_text, text=0)
+        view.append_column(column_text)
+
+        for file_ in files:
+            listmodel.append([file_])
+            #print('listmodel:', type(file_))
+
+        
+        self.scroll_window.add(view)
+        self.scroll_window.show_all()
+        #self.images_box.pack_start(view, False, False, 0)
+        #self.images_box.show_all()
+
     def return_resource_box(self):
         return self.resource_box
 
