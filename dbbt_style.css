@@ -30,18 +30,9 @@ GtkButton#FolderButton{
     background-color: #304ffe;
 }
 
-/*
-GtkBox#ButtonBox{
-    border-color: #263238;
-    border-width: 0px;
-    border-right-width: 0px;
-    box-shadow: 0 0 0 black;
-    background-color: #000a12;
-    border-image: none;
-    background-image: none;
-    color: white;
-    border-radius: 0%;
-}*/
+
+
+
 
 GtkButton#cero_cam_button{
     border-color: transparent;

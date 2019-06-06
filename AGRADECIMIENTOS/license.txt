@@ -4,4 +4,8 @@ OPEN FOLDER2 <a href="https://icons8.com/icon/12988/imágenes-de-carpetas">Imág
 SAVE FOLDER: <a href="https://icons8.com/icon/12160/carpeta">Carpeta icon by Icons8</a>
 SAVE ICON1: <a href="https://icons8.com/icon/13279/guardar">Guardar icon by Icons8</a>
 SAVE ICON2: <a href="https://icons8.com/icon/102556/guardar-cerrar">Guardar cerrar icon by Icons8</a>
-
+VERIFY1: <a href="https://icons8.com/icon/83397/someter-para-aprobacion">Someter para aprobacion icon by Icons8</a>
+VERIFY2: <a href="https://icons8.com/icon/102561/cuenta-verificada">Cuenta verificada icon by Icons8</a>
+LEFT ARROW: <a href="https://icons8.com/icon/19183/galón-izquierdo">Galón izquierdo icon by Icons8</a>
+RIGHT ARROW: <a href="https://icons8.com/icon/19186/chebrón-hacia-la-derecha">Chebrón hacia la derecha icon by Icons8</a>
+ 
