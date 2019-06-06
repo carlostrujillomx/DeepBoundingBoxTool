@@ -8,4 +8,9 @@ VERIFY1: <a href="https://icons8.com/icon/83397/someter-para-aprobacion">Someter
 VERIFY2: <a href="https://icons8.com/icon/102561/cuenta-verificada">Cuenta verificada icon by Icons8</a>
 LEFT ARROW: <a href="https://icons8.com/icon/19183/galón-izquierdo">Galón izquierdo icon by Icons8</a>
 RIGHT ARROW: <a href="https://icons8.com/icon/19186/chebrón-hacia-la-derecha">Chebrón hacia la derecha icon by Icons8</a>
+EDIT IMAGE: <a href="https://icons8.com/icon/12084/editar-imagen">Editar imagen icon by Icons8</a>
+DELETE RECTBOX: <a href="https://icons8.com/icon/13066/eliminar-imagen">Eliminar imagen icon by Icons8</a>
+EXPAND: <a href="https://icons8.com/icon/12121/expandir">Expandir icon by Icons8</a>
+ZOOM OUT: <a href="https://icons8.com/icon/11885/achicar">Achicar icon by Icons8</a>
+FIT: <a href="https://icons8.com/icon/39720/para-ampliar-el-tamaño-real">Para ampliar el tamaño real icon by Icons8</a>
  

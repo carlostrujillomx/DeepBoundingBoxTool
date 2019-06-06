@@ -22,7 +22,12 @@ class MENU():
         self.set_verify_button()
         self.set_unsave_changes()
         self.set_check_boxes()
-
+        self.set_separator()
+        self.set_edit_button()
+        self.set_cancel_button()
+        self.set_zoomin_button()
+        self.set_zoomout_button()
+        self.set_zoomfit_button()
 
     def set_open_folder(self):
         box = Gtk.Box()
@@ -73,7 +78,7 @@ class MENU():
         img_width = int(button_width*0.5)
         img_height = img_width
 
-        button = Gtk.Button("Next", xalign = 0.5, yalign = 0.5) 
+        button = Gtk.Button("Prev", xalign = 0.5, yalign = 0.5) 
         button.set_name("FolderButton")
         button.set_size_request(button_width, button_height)
         pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-galón-izquierdo-filled-96.png', img_width, img_height)
@@ -152,13 +157,123 @@ class MENU():
         #button_height = button_width
         
         yolo_checkbutton = Gtk.CheckButton("YOLO")
-        VOC_checkbutton = Gtk.CheckButton("VOC PASCAL")
+        VOC_checkbutton = Gtk.CheckButton("PASCAL\nVOC")
 
         box.pack_start(yolo_checkbutton, False, False, 0)
         box.pack_start(VOC_checkbutton, False, False, 0)
 
         self.menu_box.pack_start(box, False, False, 0)
 
+    def set_separator(self):
+        width = int(self.screen_width*0.05)
+        separator_box = Gtk.Box()
+        box = Gtk.Box()
+        box.set_size_request(width, 0)
+        separator = Gtk.Separator(orientation = Gtk.Orientation.HORIZONTAL)
+        separator_box.pack_start(box, True, False, 0)
+        box.pack_start(separator, True, True, 0)
+        
+        self.menu_box.pack_start(separator_box, False, False, 20)
+
+    def set_edit_button(self):
+        box = Gtk.Box()
+        
+        button_width = int(self.screen_width*0.045)
+        button_height = button_width
+        img_width = int(button_width*0.55)
+        img_height = img_width
+
+        button = Gtk.Button("   Create\n RectBox", xalign = 0.5, yalign = 0.5)
+        button.set_name("FolderButton")
+        button.set_size_request(button_width, button_height)
+        pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-editar-imagen-96.png', img_width, img_height)
+        img = Gtk.Image.new_from_pixbuf(pix)
+
+        button.set_image(img)
+        button.set_always_show_image(True)
+        button.set_image_position(Gtk.PositionType.TOP)
+        box.pack_start(button, True, True, 0)
+        self.menu_box.pack_start(box, False, False, 0)
+    
+    def set_cancel_button(self):
+        box = Gtk.Box()
+        
+        button_width = int(self.screen_width*0.045)
+        button_height = button_width
+        img_width = int(button_width*0.55)
+        img_height = img_width
+
+        button = Gtk.Button("   Delete\n RectBox", xalign = 0.5, yalign = 0.5)
+        button.set_name("FolderButton")
+        button.set_size_request(button_width, button_height)
+        pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-eliminar-imagen-96.png', img_width, img_height)
+        img = Gtk.Image.new_from_pixbuf(pix)
+
+        button.set_image(img)
+        button.set_always_show_image(True)
+        button.set_image_position(Gtk.PositionType.TOP)
+        box.pack_start(button, True, True, 0)
+        self.menu_box.pack_start(box, False, False, 0)
+
+    def set_zoomin_button(self):
+        box = Gtk.Box()
+        
+        button_width = int(self.screen_width*0.045)
+        button_height = button_width
+        img_width = int(button_width*0.55)
+        img_height = img_width
+
+        button = Gtk.Button("Zoom In", xalign = 0.5, yalign = 0.5)
+        button.set_name("FolderButton")
+        button.set_size_request(button_width, button_height)
+        pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-expandir-96.png', img_width, img_height)
+        img = Gtk.Image.new_from_pixbuf(pix)
+
+        button.set_image(img)
+        button.set_always_show_image(True)
+        button.set_image_position(Gtk.PositionType.TOP)
+        box.pack_start(button, True, True, 0)
+        self.menu_box.pack_start(box, False, False, 0)
+    
+    def set_zoomout_button(self):
+        box = Gtk.Box()
+        
+        button_width = int(self.screen_width*0.045)
+        button_height = button_width
+        img_width = int(button_width*0.55)
+        img_height = img_width
+
+        button = Gtk.Button("Zoom Out", xalign = 0.5, yalign = 0.5)
+        button.set_name("FolderButton")
+        button.set_size_request(button_width, button_height)
+        pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-achicar-96.png', img_width, img_height)
+        img = Gtk.Image.new_from_pixbuf(pix)
+
+        button.set_image(img)
+        button.set_always_show_image(True)
+        button.set_image_position(Gtk.PositionType.TOP)
+        box.pack_start(button, True, True, 0)
+        self.menu_box.pack_start(box, False, False, 0)
+    
+    def set_zoomfit_button(self):
+        box = Gtk.Box()
+        
+        button_width = int(self.screen_width*0.045)
+        button_height = button_width
+        img_width = int(button_width*0.55)
+        img_height = img_width
+
+        button = Gtk.Button("Fit", xalign = 0.5, yalign = 0.5)
+        button.set_name("FolderButton")
+        button.set_size_request(button_width, button_height)
+        pix = GdkPixbuf.Pixbuf.new_from_file_at_size('graphics/icons8-para-ampliar-el-tamaño-real-96.png', img_width, img_height)
+        img = Gtk.Image.new_from_pixbuf(pix)
+
+        button.set_image(img)
+        button.set_always_show_image(True)
+        button.set_image_position(Gtk.PositionType.TOP)
+        box.pack_start(button, True, True, 0)
+        self.menu_box.pack_start(box, False, False, 0)
 
 
     def return_menu_box(self):

@@ -5,7 +5,8 @@ GtkWindow{
 }
 
 GtkBox#MENU_BOX{
-    background-color: #000a12;   
+    background-color: #000a12;
+    /*background-color: #ffffff;*/   
 }
 GtkBox#DRAWING_BOX{
     /*border-image: none;*/
@@ -29,6 +30,17 @@ GtkButton#FolderButton{
 .button#FolderButton:hover{
     background-color: #304ffe;
 }
+
+GtkSeparator{
+    /*border-color: #ffffff;*/
+    color: white;
+    border-width: 2px;
+    /*background-color: #ffffff;*/
+}
+
+
+
+
 
 
 
