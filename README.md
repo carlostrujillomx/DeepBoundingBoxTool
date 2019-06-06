@@ -12,4 +12,4 @@ The execution is:
 python3 dbbt.py
 
 
-![Alt text](images/advance1.png)
+![first prototype preview](images/advance1.png)
