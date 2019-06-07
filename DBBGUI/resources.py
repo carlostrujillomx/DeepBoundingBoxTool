@@ -203,7 +203,7 @@ class bi_iterator():
         self.index = 0
         self.max_index = len(collection)
         self.current_index = 0
-        print('max collection:', self.max_index)
+        #print('max collection:', self.max_index)
     
     def next(self):
         if self.current_index < self.max_index-1: 
