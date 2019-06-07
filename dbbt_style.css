@@ -1,17 +1,11 @@
 GtkWindow{
-    /*border-image: none;*/
-	/*background-image: none;*/
     background-color: #263238;
 }
 
 GtkBox#MENU_BOX{
-    background-color: #000a12;
-    /*background-color: #ffffff;*/   
+    background-color: #000a12; 
 }
 GtkBox#DRAWING_BOX{
-    /*border-image: none;*/
-	/*background-image: none;*/
-	/*background-color: orangered;*/
 	background-color: #000000;
     box-shadow: 0px 4px 10px 0px rgba(0,0,0,0.3);
 }
@@ -42,14 +36,14 @@ GtkSeparator{
     border-width: 2px;
     /*background-color: #ffffff;*/
 }
-GtkScrolledWindow{
+GtkScrolledWindow#NETSCROLLWINDOW{
     background-color: #4f5b62;
     border-image: none;
     background-image: none;
     color: white;
     border-radius: 0%;   
 }
-GtkTreeView{
+GtkTreeView#NETVIEW{
     background-color: #4f5b62;
     border-image: none;
     background-image: none;

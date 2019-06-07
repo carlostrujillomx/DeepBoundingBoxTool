@@ -49,6 +49,8 @@ class MENU():
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
 
+        button.connect('clicked', self.__open_folder_clicked)
+
 
     def set_save_folder(self):
         box = Gtk.Box()
@@ -275,6 +277,23 @@ class MENU():
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
 
+    def wrap_resources(self, resources_cl):
+        self.resources_cl = resources_cl
+
+    def __open_folder_clicked(self, button):
+        dialog = Gtk.FileChooserDialog('Choose a Folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER|Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        response = dialog.run()
+        image_folder_path = dialog.get_filename()
+        dialog.destroy()
+        if response == -5:
+            self.__set_resources(image_folder_path)
+
+
+    def __set_resources(self, path):
+        self.resources_cl.set_files(path)
 
     def return_menu_box(self):
         return self.menu_box
+
+
+

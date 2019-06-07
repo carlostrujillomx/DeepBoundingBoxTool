@@ -39,6 +39,8 @@ class DBBT():
         self.main_box.pack_start(self.resources_box, False, False, 0)
         self.dbbt_resources.wrap_drawing_area(self.darea)
 
+        self.dbbt_menu.wrap_resources(self.dbbt_resources)
+
     
     def return_main_dbbt_box(self):
         return self.main_box

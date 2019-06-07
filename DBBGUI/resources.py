@@ -22,8 +22,6 @@ class ResourcesPanel():
         self.set_net_box()
         self.set_files_loaded()
         self.set_resources()
-        #self.source_images_box()
-        #self.set_resource_section()
 
     def set_label(self):
         label_box = Gtk.Box()
@@ -67,22 +65,30 @@ class ResourcesPanel():
     def set_resources(self):
         scroll_height = int(self.screen_height * 0.716)
 
-        scroll_window = Gtk.ScrolledWindow(None, None)
-        scroll_window.set_name("NETSCROLLWINDOW")
-        scroll_window.set_size_request(0, scroll_height)
-        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+        self.resource_scroll_window = Gtk.ScrolledWindow(None, None)
+        self.resource_scroll_window.set_name("NETSCROLLWINDOW")
+        self.resource_scroll_window.set_size_request(0, scroll_height)
+        self.resource_scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
 
-        self.resource_box.pack_start(scroll_window, False, False, 0)
+        self.resource_box.pack_start(self.resource_scroll_window, False, False, 0)
 
-        listmodel = Gtk.ListStore(str)
-        view = Gtk.TreeView(model = listmodel)
+        self.list_images = Gtk.ListStore(str)
+        view = Gtk.TreeView(model = self.list_images)
         view.set_name("NETVIEW")
         renderer_text = Gtk.CellRendererText()
         columntext = Gtk.TreeViewColumn("Images", renderer_text, text=0)
         view.append_column(columntext)
 
 
-        scroll_window.add(view)
+        self.resource_scroll_window.add(view)
+
+    def set_files(self, path):
+        files = listdir(path)
+        for image_file in files:
+            self.list_images.append([image_file])
+        
+        self.resource_scroll_window.show_all()
+        #print('files_path:', path)
 
 
     """    
@@ -96,7 +102,7 @@ class ResourcesPanel():
         self.deep_learning_box.pack_start(resources_box, False, False, spacing)
 
         filechooser.connect('clicked', self.set_dialog)
-    """
+    
 
     def set_dialog(self, button):
         dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
@@ -134,19 +140,19 @@ class ResourcesPanel():
 
         self.set_darea(path, files)
 
-    def wrap_drawing_area(self, drarea):
-        self.darea = drarea
-        self.darea.connect('draw', self.on_draw)
-
     def set_darea(self, path, files):
         self.pix = GdkPixbuf.Pixbuf.new_from_file(path+'/'+files[0])
         self.darea.queue_draw()
+    """
+    def wrap_drawing_area(self, drarea):
+        self.darea = drarea
+        self.darea.connect('draw', self.on_draw)
 
     def on_draw(self, w, cr):
         if self.pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.pix, 0, 0)
             cr.paint()
-            
+               
 
 
     def return_resource_box(self):
