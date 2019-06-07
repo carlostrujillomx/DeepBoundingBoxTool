@@ -35,7 +35,7 @@ class ResourcesPanel():
         spacing = int(self.screen_height * 0.05)
         label_spacing = int(self.screen_width * 0.005)
         net_box = Gtk.Box()
-        net_label = Gtk.Label("model path:")
+        net_label = Gtk.Label("Model Path:")
         net_button = Gtk.Button("Select Path")
 
         net_box.pack_start(net_label, False, False, label_spacing)
@@ -65,7 +65,7 @@ class ResourcesPanel():
         scroll_window.add(view)
 
     def set_resources(self):
-        scroll_height = int(self.screen_height * 0.5)
+        scroll_height = int(self.screen_height * 0.716)
 
         scroll_window = Gtk.ScrolledWindow(None, None)
         scroll_window.set_name("NETSCROLLWINDOW")

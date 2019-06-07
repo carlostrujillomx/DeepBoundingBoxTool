@@ -28,7 +28,12 @@ GtkButton#FolderButton{
     border-radius: 0%;
 }
 .button#FolderButton:hover{
+    transition: 800ms ease-in;
     background-color: #304ffe;
+}
+.button#FolderButton:active{
+    transition:50ms ease-in-out;
+    background-color: orangered;
 }
 
 GtkSeparator{
