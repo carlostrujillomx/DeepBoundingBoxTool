@@ -15,6 +15,8 @@ class MENU():
         self.menu_box.set_size_request(menu_width, 0)
         self.menu_box.set_name('MENU_BOX')
 
+        self.resources_charged = False
+
         self.set_open_folder()
         self.set_save_folder()
         self.set_prev_button()
@@ -92,6 +94,8 @@ class MENU():
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
 
+        button.connect('clicked', self.__prev_button_clicked)
+
     def set_next_button(self):
         box = Gtk.Box()
         
@@ -111,6 +115,8 @@ class MENU():
         button.set_image_position(Gtk.PositionType.TOP)
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
+
+        button.connect('clicked', self.__next_button_clicked)
 
     def set_verify_button(self):
         box = Gtk.Box()
@@ -291,6 +297,15 @@ class MENU():
 
     def __set_resources(self, path):
         self.resources_cl.set_files(path)
+        self.resources_charged = True
+
+    def __next_button_clicked(self, button):
+        if self.resources_charged:
+            self.resources_cl.next_image()
+
+    def __prev_button_clicked(self, button):
+        if self.resources_charged:
+            self.resources_cl.prev_image()
 
     def return_menu_box(self):
         return self.menu_box

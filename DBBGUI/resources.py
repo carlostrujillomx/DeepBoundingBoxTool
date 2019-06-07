@@ -1,9 +1,11 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf 
+from gi.repository import Gtk, Gdk, GdkPixbuf, GLib 
 import cairo
 
 from os import listdir
+import cv2
+
 
 class ResourcesPanel():
     def __init__(self, window):
@@ -17,7 +19,7 @@ class ResourcesPanel():
         self.resource_box.set_name("MENU_BOX")
         self.resource_box.set_size_request(box_width, 0)
         
-        self.pix = None
+        self.current_pix = None
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
@@ -83,13 +85,48 @@ class ResourcesPanel():
         self.resource_scroll_window.add(view)
 
     def set_files(self, path):
+        self.current_path = path
+        self.cv_width = self.darea.get_allocation().width
+        self.cv_height = self.darea.get_allocation().height
+        
         files = listdir(path)
         for image_file in files:
             self.list_images.append([image_file])
         
+        filename = path+'/'+files[0]
+        image = cv2.imread(filename)
+        self.current_pix = self.im2pixbuf(image)
+        self.list_iterator = bi_iterator(files)
         self.resource_scroll_window.show_all()
-        #print('files_path:', path)
 
+        self.darea.queue_draw()
+        
+    def next_image(self):
+        next_iterator = self.list_iterator.next()
+        filename = self.current_path+'/'+next_iterator
+        print("size darea", self.cv_width, self.cv_height, type(next_iterator))
+        if next_iterator != "None":
+            image = cv2.imread(filename)
+            self.current_pix = self.im2pixbuf(image)
+            self.darea.queue_draw()
+            print(filename)
+
+    def prev_image(self):
+        prev_iterator = self.list_iterator.prev()
+        filename = self.current_path+'/'+prev_iterator
+        if prev_iterator != "None":
+            image = cv2.imread(filename)
+            self.current_pix = self.im2pixbuf(image)
+            self.darea.queue_draw()
+
+
+    def im2pixbuf(self, image):
+        image = cv2.resize(image, (self.cv_width, self.cv_height))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        data = image.tobytes()
+        data = GLib.Bytes.new(data)
+        pix = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, self.cv_width, self.cv_height, self.cv_width*3)
+        return pix
 
     """    
     def set_resource_section(self):
@@ -149,11 +186,36 @@ class ResourcesPanel():
         self.darea.connect('draw', self.on_draw)
 
     def on_draw(self, w, cr):
-        if self.pix is not None:
-            Gdk.cairo_set_source_pixbuf(cr, self.pix, 0, 0)
+        if self.current_pix is not None:
+            Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
             cr.paint()
                
 
 
     def return_resource_box(self):
         return self.resource_box
+
+
+
+class bi_iterator():
+    def __init__(self, collection):
+        self.collection = collection
+        self.index = 0
+        self.max_index = len(collection)
+        self.current_index = 0
+        print('max collection:', self.max_index)
+    
+    def next(self):
+        if self.current_index < self.max_index-1: 
+            self.current_index += 1
+        else:
+            return "None"
+        return self.collection[self.current_index]
+    
+    def prev(self):
+        if self.current_index > 0:
+            self.current_index -= 1
+        else:
+            return "None"
+        return self.collection[self.current_index]
+            
