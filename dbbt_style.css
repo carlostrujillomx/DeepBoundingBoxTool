@@ -37,6 +37,20 @@ GtkSeparator{
     border-width: 2px;
     /*background-color: #ffffff;*/
 }
+GtkScrolledWindow{
+    background-color: #4f5b62;
+    border-image: none;
+    background-image: none;
+    color: white;
+    border-radius: 0%;   
+}
+GtkTreeView{
+    background-color: #4f5b62;
+    border-image: none;
+    background-image: none;
+    color: white;
+    border-radius: 0%;   
+}
 
 
 

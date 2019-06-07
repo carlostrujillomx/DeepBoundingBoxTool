@@ -12,21 +12,80 @@ class ResourcesPanel():
         self.screen_width = self.screen.get_width()
         self.screen_height = self.screen.get_height()
 
-        box_width = int(self.screen_width*0.15)
+        box_width = int(self.screen_width*0.178)
         self.resource_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+        self.resource_box.set_name("MENU_BOX")
         self.resource_box.set_size_request(box_width, 0)
         
         self.pix = None
-        self.net_box()
-        self.source_images_box()
-        self.set_resource_section()
+        self.set_label()
+        self.set_net_box()
+        self.set_files_loaded()
+        self.set_resources()
+        #self.source_images_box()
+        #self.set_resource_section()
 
-    def net_box(self):
-        box_height = int(self.screen_height * 0.3)
-        self.deep_learning_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
-        self.deep_learning_box.set_size_request(0, box_height)
-        self.resource_box.pack_start(self.deep_learning_box, False, False, 0)
+    def set_label(self):
+        label_box = Gtk.Box()
+        label = Gtk.Label("Deep Learning Model")
+        label_box.pack_start(label, True, False, 0)
+        self.resource_box.pack_start(label_box, False, False, 0)
 
+    def set_net_box(self):
+        spacing = int(self.screen_height * 0.05)
+        label_spacing = int(self.screen_width * 0.005)
+        net_box = Gtk.Box()
+        net_label = Gtk.Label("model path:")
+        net_button = Gtk.Button("Select Path")
+
+        net_box.pack_start(net_label, False, False, label_spacing)
+        net_box.pack_start(net_button, True, False, 0)
+
+        self.resource_box.pack_start(net_box, False, False, spacing)
+
+    def set_files_loaded(self):
+        spacing = int(self.screen_height * 0.02)
+        scroll_height = int(self.screen_height * 0.1)
+
+        scroll_window = Gtk.ScrolledWindow(None, None)
+        scroll_window.set_name("NETSCROLLWINDOW")
+        scroll_window.set_size_request(0, scroll_height)
+        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        self.resource_box.pack_start(scroll_window, False, False, spacing)
+
+        listmodel = Gtk.ListStore(str)
+        view = Gtk.TreeView(model = listmodel)
+        view.set_name("NETVIEW")
+        renderer_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn("Files loaded", renderer_text, text=0)
+        view.append_column(columntext)
+
+
+        scroll_window.add(view)
+
+    def set_resources(self):
+        scroll_height = int(self.screen_height * 0.5)
+
+        scroll_window = Gtk.ScrolledWindow(None, None)
+        scroll_window.set_name("NETSCROLLWINDOW")
+        scroll_window.set_size_request(0, scroll_height)
+        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        self.resource_box.pack_start(scroll_window, False, False, 0)
+
+        listmodel = Gtk.ListStore(str)
+        view = Gtk.TreeView(model = listmodel)
+        view.set_name("NETVIEW")
+        renderer_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn("Images", renderer_text, text=0)
+        view.append_column(columntext)
+
+
+        scroll_window.add(view)
+
+
+    """    
     def set_resource_section(self):
         spacing = int(self.screen_height * 0.1)
         resources_box = Gtk.Box()
@@ -37,7 +96,7 @@ class ResourcesPanel():
         self.deep_learning_box.pack_start(resources_box, False, False, spacing)
 
         filechooser.connect('clicked', self.set_dialog)
-
+    """
 
     def set_dialog(self, button):
         dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))

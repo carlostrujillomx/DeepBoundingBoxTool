@@ -27,7 +27,7 @@ class DBBT():
         self.main_box.pack_start(menu_box, False, False, 0)
     
     def set_drawing(self):
-        spacing = int(self.screen_width * 0.001)
+        spacing = int(self.screen_width * 0.01)
         self.dbbt_drawing = DRAWING(self.window)
         drawing_box = self.dbbt_drawing.return_drawing_box()
         self.darea = self.dbbt_drawing.get_drawing_area()
