@@ -1,5 +1,7 @@
 # DeepBoundingBoxTool
 BoundingBoxTool with deep learning support to classify objects on images, at the first version will support darknet models.
+This work is inspired by LabelImg:
+Git code (2015). https://github.com/tzutalin/labelImg
 
 Software dependencies:
 *OpenCV
