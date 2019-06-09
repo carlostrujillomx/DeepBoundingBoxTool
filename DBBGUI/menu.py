@@ -294,7 +294,6 @@ class MENU():
         if response == -5:
             self.__set_resources(image_folder_path)
 
-
     def __set_resources(self, path):
         self.resources_cl.set_files(path)
         self.resources_charged = True
@@ -306,6 +305,12 @@ class MENU():
     def __prev_button_clicked(self, button):
         if self.resources_charged:
             self.resources_cl.prev_image()
+    
+    def wrap_drawing(self, drawing_cl):
+        self.drawing_wrapped = drawing_cl
+
+    def __create_rectbox(self):
+        self.drawing_wrapped.create_rectbox_clicked()
 
     def return_menu_box(self):
         return self.menu_box

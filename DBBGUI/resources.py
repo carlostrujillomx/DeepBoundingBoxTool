@@ -5,6 +5,7 @@ import cairo
 
 from os import listdir
 import cv2
+import math
 
 
 class ResourcesPanel():
@@ -20,6 +21,7 @@ class ResourcesPanel():
         self.resource_box.set_size_request(box_width, 0)
         
         self.current_pix = None
+        self.clicked = False
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
@@ -128,70 +130,28 @@ class ResourcesPanel():
         pix = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, self.cv_width, self.cv_height, self.cv_width*3)
         return pix
 
-    """    
-    def set_resource_section(self):
-        spacing = int(self.screen_height * 0.1)
-        resources_box = Gtk.Box()
-        images_path_label = Gtk.Label("Images Path:")
-        filechooser = Gtk.Button("Choose Folder...")
-        resources_box.pack_start(images_path_label, True, False, 0)
-        resources_box.pack_start(filechooser, True, False, 0)
-        self.deep_learning_box.pack_start(resources_box, False, False, spacing)
-
-        filechooser.connect('clicked', self.set_dialog)
-    
-
-    def set_dialog(self, button):
-        dialog = Gtk.FileChooserDialog('Choose a folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
-        dialog.run()
-        image_folder_path = dialog.get_filename()
-        dialog.destroy()
-        print("SelectedPath:", image_folder_path)
-        btn_text = image_folder_path.split('/')[-1]
-        button.set_label(btn_text)
-
-        self.set_list(image_folder_path)
-        
-    def source_images_box(self):
-        scroll_height = int(self.screen_height * 0.6)
-        self.scroll_window = Gtk.ScrolledWindow(None, None)
-        self.scroll_window.set_size_request(0, scroll_height)
-        self.scroll_window.set_border_width(0)
-        self.scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
-        self.resource_box.pack_start(self.scroll_window, False, False, 0)
-    
-    def set_list(self, path):
-        files = listdir(path)
-        print(files)
-        listmodel = Gtk.ListStore(str)
-        view = Gtk.TreeView(model = listmodel)
-        renderer_text = Gtk.CellRendererText()
-        column_text = Gtk.TreeViewColumn("Image", renderer_text, text=0)
-        view.append_column(column_text)
-
-        for file_ in files:
-            listmodel.append([file_])
-            
-        self.scroll_window.add(view)
-        self.scroll_window.show_all()
-
-        self.set_darea(path, files)
-
-    def set_darea(self, path, files):
-        self.pix = GdkPixbuf.Pixbuf.new_from_file(path+'/'+files[0])
-        self.darea.queue_draw()
-    """
     def wrap_drawing_area(self, drarea):
         self.darea = drarea
-        self.darea.connect('draw', self.on_draw)
+        self.darea.connect('draw', self.__on_draw)
+        #self.darea.connect('motion-notify-event', self.motion_event)
+        self.darea.connect('button-press-event', self.__drawing_clicked)
+        
+    def __drawing_clicked(self, w, e):
+        self.clicked = True
+        self.click_ex = e.x
+        self.click_ey = e.y
 
-    def on_draw(self, w, cr):
+
+    def __on_draw(self, w, cr):
         if self.current_pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
             cr.paint()
-               
-
-
+            cr.set_source_rgb(1,1,1)
+            cr.arc(self.click_ex, self.click_ey, 5, 0, 2*math.pi)
+            cr.fill()
+            cr.stroke()
+        self.clicked = False
+    
     def return_resource_box(self):
         return self.resource_box
 
