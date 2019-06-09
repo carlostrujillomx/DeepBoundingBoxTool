@@ -202,6 +202,8 @@ class MENU():
         button.set_image_position(Gtk.PositionType.TOP)
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
+
+        button.connect('clicked', self.__create_rectbox)
     
     def set_cancel_button(self):
         box = Gtk.Box()
@@ -309,8 +311,9 @@ class MENU():
     def wrap_drawing(self, drawing_cl):
         self.drawing_wrapped = drawing_cl
 
-    def __create_rectbox(self):
-        self.drawing_wrapped.create_rectbox_clicked()
+    def __create_rectbox(self, button):
+        #self.drawing_wrapped.create_rectbox_clicked()
+        self.resources_cl.create_rectbox()
 
     def return_menu_box(self):
         return self.menu_box

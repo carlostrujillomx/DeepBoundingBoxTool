@@ -22,6 +22,9 @@ class ResourcesPanel():
         
         self.current_pix = None
         self.clicked = False
+        self.clicks_qty = 0
+        self.click_ex = 0
+        self.click_ey = 0
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
@@ -133,25 +136,44 @@ class ResourcesPanel():
     def wrap_drawing_area(self, drarea):
         self.darea = drarea
         self.darea.connect('draw', self.__on_draw)
-        #self.darea.connect('motion-notify-event', self.motion_event)
+        self.darea.connect('motion-notify-event', self.__motion_event)
         self.darea.connect('button-press-event', self.__drawing_clicked)
-        
-    def __drawing_clicked(self, w, e):
+    
+    def create_rectbox(self):
         self.clicked = True
-        self.click_ex = e.x
-        self.click_ey = e.y
+        #print('clicked:',self.clicked)
 
+    def __drawing_clicked(self, w, e):
+        #self.clicked = True
+        if self.clicked:
+            self.clicks_qty += 1
+            print(self.clicks_qty)
+            if self.clicks_qty == 2:
+                self.clicked = False
+                self.clicks_qty = 0
+
+            self.click_ex = e.x
+            self.click_ey = e.y
+            self.darea.queue_draw()
 
     def __on_draw(self, w, cr):
         if self.current_pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
             cr.paint()
-            cr.set_source_rgb(1,1,1)
-            cr.arc(self.click_ex, self.click_ey, 5, 0, 2*math.pi)
-            cr.fill()
-            cr.stroke()
-        self.clicked = False
+            if self.clicked:
+                cr.set_source_rgb(1,1,1)
+                cr.arc(self.click_ex, self.click_ey, 5, 0, 2*math.pi)
+                #cr.rectangle(self.click_ex, self.click_ey, self.motion_ex, self.motion_ey)
+                cr.fill()
+                cr.stroke()
+        #self.clicked = False
     
+    def __motion_event(self, w, e):
+        if self.clicked:
+            self.motion_ex = e.x - self.click_ex
+            self.motion_ey = e.y - self.click_ey
+            self.darea.queue_draw()
+
     def return_resource_box(self):
         return self.resource_box
 

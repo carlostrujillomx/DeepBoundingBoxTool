@@ -31,8 +31,8 @@ class DRAWING():
 
         self.darea.set_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
 
-        self.darea.connect('motion-notify-event', self.motion_event)
-        self.darea.connect('button-press-event', self.__drawing_clicked)
+        #self.darea.connect('motion-notify-event', self.motion_event)
+        #self.darea.connect('button-press-event', self.__drawing_clicked)
         #self.darea.connect('draw', self.on_draw)
     
     def motion_event(self, w, e):
@@ -48,8 +48,8 @@ class DRAWING():
         self.clicked = True
         self.click_ex = e.x
         self.click_ey = e.y
-        print("clicked")
-        self.darea.queue_draw()
+        #print("clicked")
+        #self.darea.queue_draw()
         #self.pix = GdkPixbuf.Pixbuf.new_from_file_at_size('pikachu_meme.jpg', img_width, img_height)
         #self.pix = GdkPixbuf.Pixbuf.new_from_file('pikachu_meme.jpg')
         
