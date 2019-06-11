@@ -20,6 +20,12 @@ if __name__ == "__main__":
     main_window.connect('delete-event', Gtk.main_quit)
     main_window.set_border_width(0)
     main_window.set_position(Gtk.WindowPosition.CENTER)
+
+    #screen = Gdk.Screen.get_default()
+    #monitor_geo = screen.get_monitor_geometry(1)
+    #x = monitor_geo.x
+    #y = monitor_geo.y
+    #main_window.move(x,y)
     main_window.fullscreen()
 
     #screen_class = bb_screen.Screen_BB2(main_window)

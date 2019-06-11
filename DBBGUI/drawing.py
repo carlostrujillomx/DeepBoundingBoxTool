@@ -7,10 +7,12 @@ import math
 class DRAWING():
     def __init__(self, window):
         self.window = window
+        #self.screen = Gdk.Screen.get_default()
         self.screen = window.get_screen()
-        self.screen_width = self.screen.get_width()
-        self.screen_height = self.screen.get_height()
-
+        monitor_geo = self.screen.get_monitor_geometry(0)
+        self.screen_width = monitor_geo.width #self.screen.get_width()
+        self.screen_height = monitor_geo.height #self.screen.get_height()
+        
         drawing_width = int(self.screen_width * 0.75)
         drawing_height = int(self.screen_height * 0.8)
         
@@ -20,7 +22,6 @@ class DRAWING():
         self.drawing_box = Gtk.Box()
         self.drawing_box.set_name("DRAWING_BOX")
         self.drawing_box.set_size_request(drawing_width, drawing_height)
-        #self.main_drawing.pack_start(self.drawing_box, True, False, 0)
         self.secondary_drawing.pack_start(self.drawing_box, True, False, 0)
         self.g_ex = None
         self.g_ey = None

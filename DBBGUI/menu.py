@@ -6,10 +6,12 @@ from gi.repository import Gtk, Gdk, GdkPixbuf
 class MENU():
     def __init__(self, window):
         self.window = window
+        #self.screen = Gdk.Screen.get_default()
         self.screen = window.get_screen()
-        self.screen_width = self.screen.get_width()
-        self.screen_height = self.screen.get_height()
-
+        monitor_geo = self.screen.get_monitor_geometry(0)
+        self.screen_width = monitor_geo.width #self.screen.get_width()
+        self.screen_height = monitor_geo.height #self.screen.get_height()
+        
         menu_width = int(self.screen_width * 0.05)
         self.menu_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         self.menu_box.set_size_request(menu_width, 0)
@@ -312,7 +314,6 @@ class MENU():
         self.drawing_wrapped = drawing_cl
 
     def __create_rectbox(self, button):
-        #self.drawing_wrapped.create_rectbox_clicked()
         self.resources_cl.create_rectbox()
 
     def return_menu_box(self):

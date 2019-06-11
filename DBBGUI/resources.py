@@ -12,10 +12,12 @@ from copy import deepcopy
 class ResourcesPanel():
     def __init__(self, window):
         self.window = window
+        #self.screen = Gdk.Screen.get_default()
         self.screen = window.get_screen()
-        self.screen_width = self.screen.get_width()
-        self.screen_height = self.screen.get_height()
-
+        monitor_geo = self.screen.get_monitor_geometry(0)
+        self.screen_width = monitor_geo.width #self.screen.get_width()
+        self.screen_height = monitor_geo.height #self.screen.get_height()
+        
         box_width = int(self.screen_width*0.178)
         self.resource_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         self.resource_box.set_name("MENU_BOX")
@@ -149,16 +151,21 @@ class ResourcesPanel():
         self.clicked = True
 
     def __drawing_clicked(self, w, e):
-        self.clicks_qty += 1
-        if self.clicks_qty == 1:
-            self.current_rectangle.append([e.x, e.y, 0, 0])
-        elif self.clicks_qty == 2:
-            self.clicks_qty = 0
-            x,y,w,h = self.current_rectangle[0]
-            self.rectangles.append([x,y,w,h])
-            self.current_rectangle.clear()
-            self.current_rectangle = []
+        if e.button == 1:
+            self.clicks_qty += 1
+            #print('ebutton:', e.button)
+            if self.clicks_qty == 1:
+                self.current_rectangle.append([e.x, e.y, 0, 0])
+            elif self.clicks_qty == 2:
+                self.clicks_qty = 0
+                x,y,w,h = self.current_rectangle[0]
+                #self.rectangles.append([x,y,w,h])
+                self.rectangles.insert(0, [x,y,w,h])
+                self.current_rectangle.clear()
+                self.current_rectangle = []
         
+        elif e.button == 3:
+            self.__delete_rectbox(e.x, e.y)    
         
         self.darea.queue_draw()
 
@@ -190,6 +197,19 @@ class ResourcesPanel():
             self.current_rectangle[0][3] = h
             
         self.darea.queue_draw()
+
+    def __delete_rectbox(self, x, y):
+        index = 0
+        pop_index = -1
+        for x1,y1,w,h in self.rectangles:
+            x2 = x1 + w
+            y2 = y1 + h
+            if (x <= x2 and x >= x1) and (y <= y2 and y >= y1):
+                pop_index = index
+                break
+            index += 1
+        if pop_index != -1:
+            self.rectangles.pop(pop_index)
 
     def return_resource_box(self):
         return self.resource_box

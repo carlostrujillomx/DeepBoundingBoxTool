@@ -9,9 +9,12 @@ from .resources import ResourcesPanel
 class DBBT():
     def __init__(self, window):
         self.window = window
-        self.screen = window.get_screen()
-        self.screen_width = self.screen.get_width()
-        self.screen_height = self.screen.get_height()
+        #self.screen = window.get_screen()
+        self.screen = Gdk.Screen.get_default()
+        monitor_geo = self.screen.get_monitor_geometry(0)
+        #print("screen =", self.screen.get_width(), monitor_geo.width)
+        self.screen_width = monitor_geo.width #self.screen.get_width()
+        self.screen_height = monitor_geo.height #self.screen.get_height()
         self.window_width = self.screen_width
         self.window_height = self.screen_height
 
