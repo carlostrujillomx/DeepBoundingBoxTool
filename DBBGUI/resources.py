@@ -6,6 +6,7 @@ import cairo
 from os import listdir
 import cv2
 import math
+from copy import deepcopy
 
 
 class ResourcesPanel():
@@ -25,6 +26,11 @@ class ResourcesPanel():
         self.clicks_qty = 0
         self.click_ex = 0
         self.click_ey = 0
+        self.motion_ex = 0
+        self.motion_ey = 0
+        self.rectangles = []
+        self.current_rectangle = []
+
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
@@ -141,38 +147,49 @@ class ResourcesPanel():
     
     def create_rectbox(self):
         self.clicked = True
-        #print('clicked:',self.clicked)
 
     def __drawing_clicked(self, w, e):
-        #self.clicked = True
-        if self.clicked:
-            self.clicks_qty += 1
-            print(self.clicks_qty)
-            if self.clicks_qty == 2:
-                self.clicked = False
-                self.clicks_qty = 0
+        self.clicks_qty += 1
+        if self.clicks_qty == 1:
+            self.current_rectangle.append([e.x, e.y, 0, 0])
+        elif self.clicks_qty == 2:
+            self.clicks_qty = 0
+            x,y,w,h = self.current_rectangle[0]
+            self.rectangles.append([x,y,w,h])
+            self.current_rectangle.clear()
+            self.current_rectangle = []
+        
+        
+        self.darea.queue_draw()
 
-            self.click_ex = e.x
-            self.click_ey = e.y
-            self.darea.queue_draw()
 
     def __on_draw(self, w, cr):
         if self.current_pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
             cr.paint()
-            if self.clicked:
-                cr.set_source_rgb(1,1,1)
-                cr.arc(self.click_ex, self.click_ey, 5, 0, 2*math.pi)
-                #cr.rectangle(self.click_ex, self.click_ey, self.motion_ex, self.motion_ey)
-                cr.fill()
-                cr.stroke()
-        #self.clicked = False
-    
+            cr.set_source_rgb(1,1,1)
+            
+            if len(self.rectangles) == 0:
+                if len(self.current_rectangle) > 0:
+                    cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
+                    cr.stroke()
+            else:
+                if len(self.current_rectangle) > 0:
+                    cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
+                    cr.stroke()
+                for x,y,w,h in self.rectangles:
+                    cr.rectangle(x,y,w,h)
+                    cr.stroke()
+            
+
     def __motion_event(self, w, e):
-        if self.clicked:
-            self.motion_ex = e.x - self.click_ex
-            self.motion_ey = e.y - self.click_ey
-            self.darea.queue_draw()
+        if self.clicks_qty == 1:
+            w = e.x - self.current_rectangle[0][0]
+            h = e.y - self.current_rectangle[0][1]
+            self.current_rectangle[0][2] = w
+            self.current_rectangle[0][3] = h
+            
+        self.darea.queue_draw()
 
     def return_resource_box(self):
         return self.resource_box
