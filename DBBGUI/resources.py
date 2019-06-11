@@ -36,6 +36,8 @@ class ResourcesPanel():
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
+        self.add_remove_label()
+        self.set_label_classes()
         self.set_resources()
 
     def set_label(self):
@@ -45,7 +47,7 @@ class ResourcesPanel():
         self.resource_box.pack_start(label_box, False, False, 0)
 
     def set_net_box(self):
-        spacing = int(self.screen_height * 0.05)
+        spacing = int(self.screen_height * 0.01)
         label_spacing = int(self.screen_width * 0.005)
         net_box = Gtk.Box()
         net_label = Gtk.Label("Model Path:")
@@ -57,7 +59,7 @@ class ResourcesPanel():
         self.resource_box.pack_start(net_box, False, False, spacing)
 
     def set_files_loaded(self):
-        spacing = int(self.screen_height * 0.02)
+        spacing = int(self.screen_height * 0.01)
         scroll_height = int(self.screen_height * 0.1)
 
         scroll_window = Gtk.ScrolledWindow(None, None)
@@ -77,8 +79,105 @@ class ResourcesPanel():
 
         scroll_window.add(view)
 
+    def add_remove_label(self):
+        box_width = int(self.screen_width*0.178)
+        entryt_width = int(box_width*0.55)
+
+        box = Gtk.Box()
+        label_entry = Gtk.Entry()
+        label_entry.set_text("Label")
+        label_entry.set_size_request(entryt_width, 0)
+        box.pack_start(label_entry, False, False, 0)
+
+        add_button = Gtk.Button('Add')
+        remove_button = Gtk.Button('Remove')
+
+        box.pack_start(add_button, False, False, 0)
+        box.pack_start(remove_button, False, False, 0)
+        self.resource_box.pack_start(box, False, False ,0)
+
+    def set_label_classes(self):
+        box_height = int(self.screen_height * 0.3)
+        box_width = int(self.screen_width*0.178)
+
+        vbox = Gtk.Box()
+        vbox.set_size_request(0, box_height)
+        self.resource_box.pack_start(vbox, False, False, 0)
+        
+        scw_width = int(box_width/3)
+        scw1 = Gtk.ScrolledWindow(None, None)
+        scw1.set_name("NETSCROLLWINDOW")
+        scw1.set_size_request(scw_width, box_height)
+        scw1.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        listmodel = Gtk.ListStore(str)
+        view = Gtk.TreeView(model = listmodel)
+        view.set_name("NETVIEW")
+        renderer_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn("Image labels", renderer_text, text=0)
+        view.append_column(columntext)
+        
+        scw1.add(view)
+        vbox.pack_start(scw1, False, False, 0)
+
+        
+        scw2 = Gtk.ScrolledWindow(None, None)
+        scw2.set_name("NETSCROLLWINDOW")
+        scw2.set_size_request(scw_width, box_height)
+        scw2.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        listmodel2 = Gtk.ListStore(str)
+        view2 = Gtk.TreeView(model = listmodel2)
+        view2.set_name("NETVIEW")
+        renderer_text2 = Gtk.CellRendererText()
+        columntext2 = Gtk.TreeViewColumn("Working labels", renderer_text2, text=0)
+        view2.append_column(columntext2)
+        
+        scw2.add(view2)
+        vbox.pack_start(scw2, False, False, 0)
+        
+
+        scw3 = Gtk.ScrolledWindow(None, None)
+        scw3.set_name("NETSCROLLWINDOW")
+        scw3.set_size_request(scw_width, box_height)
+        scw3.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        listmodel3 = Gtk.ListStore(str)
+        view3 = Gtk.TreeView(model = listmodel3)
+        view3.set_name("NETVIEW")
+        renderer_text3 = Gtk.CellRendererText()
+        columntext3 = Gtk.TreeViewColumn("Net labels", renderer_text3, text=0)
+        view3.append_column(columntext3)
+        
+        scw3.add(view3)
+        vbox.pack_start(scw3, False, False, 0)
+        
+        """
+        scroll_height = int(self.screen_height * 0.3)
+        scroll_window = Gtk.ScrolledWindow(None, None)
+        scroll_window.set_name("NETSCROLLWINDOW")
+        scroll_window.set_size_request(0, scroll_height)
+        scroll_window.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
+
+        self.resource_box.pack_start(scroll_window, False, False, 0)
+
+        listmodel = Gtk.ListStore(str, str)
+        view = Gtk.TreeView(model = listmodel)
+        view.set_name("NETVIEW")
+        renderer_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn("Image labels", renderer_text, text=0)
+        view.append_column(columntext)
+        renderer_text2 = Gtk.CellRendererText()
+        columntext2 = Gtk.TreeViewColumn("Working labels", renderer_text2, text=1)
+        view.append_column(columntext2)
+        renderer_text3 = Gtk.CellRendererText()
+        columntext3 = Gtk.TreeViewColumn("Net labels", renderer_text3, text=2)
+        view.append_column(columntext3)
+
+        scroll_window.add(view)
+        """
     def set_resources(self):
-        scroll_height = int(self.screen_height * 0.716)
+        scroll_height = int(self.screen_height * 0.416)
 
         self.resource_scroll_window = Gtk.ScrolledWindow(None, None)
         self.resource_scroll_window.set_name("NETSCROLLWINDOW")
