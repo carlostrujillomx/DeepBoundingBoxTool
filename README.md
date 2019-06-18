@@ -7,6 +7,7 @@ Software dependencies:
 *OpenCV
 *Gtk3.0
 *cairo
+*darknet
 
 The software is not finished yet, i'm working on this
 
