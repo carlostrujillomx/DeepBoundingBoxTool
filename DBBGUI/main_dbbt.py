@@ -12,7 +12,6 @@ class DBBT():
         #self.screen = window.get_screen()
         self.screen = Gdk.Screen.get_default()
         monitor_geo = self.screen.get_monitor_geometry(0)
-        #print("screen =", self.screen.get_width(), monitor_geo.width)
         self.screen_width = monitor_geo.width #self.screen.get_width()
         self.screen_height = monitor_geo.height #self.screen.get_height()
         self.window_width = self.screen_width

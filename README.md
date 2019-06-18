@@ -14,4 +14,4 @@ The execution is:
 python3 dbbt.py
 
 
-![first prototype preview](images/current2.png)
+![first prototype preview](tests/advance3.png)
