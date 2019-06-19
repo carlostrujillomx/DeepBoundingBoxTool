@@ -18,6 +18,8 @@ class ResourcesPanel():
         self.screen_width = monitor_geo.width
         self.screen_height = monitor_geo.height
 
+        self.image_folder = None
+
         box_width = int(self.screen_width * 0.178)
         self.resource_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         self.resource_box.set_name('MENU_BOX')
@@ -43,6 +45,7 @@ class ResourcesPanel():
         self.darea = darea
 
     def set_files(self, image_folder_path):
+        self.image_folder = image_folder_path
         self.drawing_width = self.darea.get_allocation().width 
         self.drawing_height = self.darea.get_allocation().height
         collection = self.ImageResource.set_files(image_folder_path)
@@ -52,13 +55,21 @@ class ResourcesPanel():
         filename = image_folder_path+'/'+collection[0]
         self.DrawingImage.set_drawing_image(filename)
 
-
-
     def next_image(self):
-        pass
-    
+        if self.image_folder is not None:
+            file_, index = self.images_iterator.next()
+            if file_ is not "None":
+                filename = self.image_folder+'/'+file_
+                self.DrawingImage.set_drawing_image(filename)
+                self.ImageResource.set_view_cursor(index)
+        
     def prev_image(self):
-        pass
+        if self.image_folder is not None:
+            file_, index = self.images_iterator.prev()
+            if file_ is not "None":
+                filename = self.image_folder+'/'+file_
+                self.DrawingImage.set_drawing_image(filename)
+                self.ImageResource.set_view_cursor(index)
 
     def return_resource_box(self):
         return self.resource_box        
@@ -308,7 +319,7 @@ class ImageResources():
 
     def __on_changed(self, selection):
         model, iter_ = selection.get_selected()
-        print(model[iter_][0])
+        #print(model[iter_][0])
         
     def return_image_resources_box(self):
         return self.image_scw
@@ -325,14 +336,14 @@ class bi_iterator():
         if self.current_index < self.max_index-1: 
             self.current_index += 1
         else:
-            return "None"
+            return "None", self.current_index
         return self.collection[self.current_index], self.current_index
     
     def prev(self):
         if self.current_index > 0:
             self.current_index -= 1
         else:
-            return "None"
+            return "None", self.current_index
         return self.collection[self.current_index], self.current_index
 
 
