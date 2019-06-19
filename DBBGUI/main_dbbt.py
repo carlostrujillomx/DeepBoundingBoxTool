@@ -4,8 +4,8 @@ from gi.repository import Gtk, Gdk, GdkPixbuf
 
 from .menu import MENU
 from .drawing import DRAWING
-from .resources import ResourcesPanel
-
+#from .resources import ResourcesPanel
+from .resources2 import ResourcesPanel
 class DBBT():
     def __init__(self, window):
         self.window = window

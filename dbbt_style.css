@@ -43,6 +43,7 @@ GtkScrolledWindow#NETSCROLLWINDOW{
     color: white;
     border-radius: 0%;   
 }
+/*
 GtkTreeView#NETVIEW{
     background-color: #4f5b62;
     border-image: none;
@@ -50,8 +51,13 @@ GtkTreeView#NETVIEW{
     color: white;
     border-radius: 0%;   
 }
-
-
+*/
+GtkTreeView#NETVIEW{
+    background-color: #4f5b62;
+}
+GtkTreeView#NETVIEW:selected{
+    background-color: blue;
+}
 
 
 

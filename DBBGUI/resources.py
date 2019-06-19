@@ -34,13 +34,23 @@ class ResourcesPanel():
         self.rectangles = []
         self.current_rectangle = []
         self.DBBT_net = None
-
+        self.wlabels = []
+        
+        self.load_working_labels()
         self.set_label()
         self.set_net_box()
         self.set_files_loaded()
         self.add_remove_label()
         self.set_label_classes()
         self.set_resources()
+
+    def load_working_labels(self):
+        wlabels_file = open('wlabels.txt', 'r')
+        wlabels_lines = wlabels_file.readlines()
+        for line in wlabels_lines:
+            line = line.strip('\n')
+            self.wlabels.append(line)
+        wlabels_file.close()
 
     def set_label(self):
         label_box = Gtk.Box()
@@ -129,14 +139,14 @@ class ResourcesPanel():
         scw2.set_size_request(scw_width, box_height)
         scw2.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
 
-        listmodel2 = Gtk.ListStore(str)
-        view2 = Gtk.TreeView(model = listmodel2)
-        view2.set_name("NETVIEW")
+        self.listmodel2 = Gtk.ListStore(str)
+        self.view2 = Gtk.TreeView(model = self.listmodel2)
+        self.view2.set_name("NETVIEW")
         renderer_text2 = Gtk.CellRendererText()
         columntext2 = Gtk.TreeViewColumn("Working labels", renderer_text2, text=0)
-        view2.append_column(columntext2)
+        self.view2.append_column(columntext2)
         
-        scw2.add(view2)
+        scw2.add(self.view2)
         vbox.pack_start(scw2, False, False, 0)
         
 
@@ -154,6 +164,12 @@ class ResourcesPanel():
         
         scw3.add(self.view3)
         vbox.pack_start(scw3, False, False, 0)
+
+        for label in self.wlabels:
+            self.listmodel2.append([label])
+        
+        self.view2.show_all()
+
         
     def set_resources(self):
         scroll_height = int(self.screen_height * 0.416)
@@ -327,8 +343,6 @@ class ResourcesPanel():
             x1,y1,w,h = self.__get_upsampled_size(image, box)
             x2 = x1+w
             y2 = y1+h
-            #cv2.rectangle(image, (x1,y1), (x2,y2), (0,255,0), 2)
-            #self.__draw_classification(image, [x1,y1,w,h], classification)
             self.rectangles.insert(0, [x1,y1, w, h])
             self.image_listmodel.append([classification])
         self.image_view.show_all()
