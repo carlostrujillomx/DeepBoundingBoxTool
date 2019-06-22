@@ -9,6 +9,8 @@ import math
 from copy import deepcopy
 from DBBGUI import darknet
 import os
+import random
+import colorsys
 
 class ResourcesPanel():
     def __init__(self, window):
@@ -55,20 +57,32 @@ class ResourcesPanel():
         filename = image_folder_path+'/'+collection[0]
         self.DrawingImage.set_drawing_image(filename)
 
+        self.DBBnet = self.DboxResource.get_darknet()
+        self.DBBnet_labels = self.DboxResource.get_net_labels()
+        self.DrawingImage.wrap_darknet(self.DBBnet)
+        self.DrawingImage.generate_label_colors(self.DBBnet_labels)
+        self.LabelResource.wrap_drawing_event(self.DrawingImage)
+
+
+
     def next_image(self):
         if self.image_folder is not None:
             file_, index = self.images_iterator.next()
             if file_ is not "None":
                 filename = self.image_folder+'/'+file_
-                self.DrawingImage.set_drawing_image(filename)
+                #labels = self.DrawingImage.set_drawing_image(filename)
+                obj_detections = self.DrawingImage.set_drawing_image(filename)
                 self.ImageResource.set_view_cursor(index)
+
+
+                self.LabelResource.update_ImageLabels(obj_detections)
         
     def prev_image(self):
         if self.image_folder is not None:
             file_, index = self.images_iterator.prev()
             if file_ is not "None":
                 filename = self.image_folder+'/'+file_
-                self.DrawingImage.set_drawing_image(filename)
+                labels = self.DrawingImage.set_drawing_image(filename)
                 self.ImageResource.set_view_cursor(index)
 
     def return_resource_box(self):
@@ -213,6 +227,8 @@ class LabelClasses():
         self.box_width = int(self.screen_width*0.178)
         self.scw_width = int(self.box_width/3)
         
+        self.current_iter = None
+
         self.labelsbox = Gtk.Box()
         self.labelsbox.set_size_request(0, self.box_height)
         self.set_ImageLabels()
@@ -225,17 +241,33 @@ class LabelClasses():
         image_scw.set_size_request(self.scw_width, self.box_height)
         image_scw.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
 
-        self.imagelistmodel = Gtk.ListStore(str)
+        self.imagelistmodel = Gtk.ListStore(int,str)
         self.imageview = Gtk.TreeView(model = self.imagelistmodel)
         self.imageview.set_name('NETVIEW')
         renderer_text = Gtk.CellRendererText()
-        columntext = Gtk.TreeViewColumn('Image Labels', renderer_text, text = 0)
+        columntext = Gtk.TreeViewColumn('id', renderer_text, text = 0)
+        renderer_text2 = Gtk.CellRendererText()
+        columntext2 = Gtk.TreeViewColumn('label', renderer_text2, text = 1)
+        
         self.imageview.append_column(columntext)
+        self.imageview.append_column(columntext2)
 
         image_scw.add(self.imageview)
 
         self.labelsbox.pack_start(image_scw, False, False, 0)
 
+        selection = self.imageview.get_selection()
+        selection.connect('changed', self.__image_view_changed)
+        
+
+    def update_ImageLabels(self, object_detections):
+        self.imagelistmodel.clear()
+        for key in object_detections:
+            label, box, color, flag = object_detections.get(key)
+            self.imagelistmodel.append([key,label])
+        self.imageview.show_all()
+        selection = self.imageview.get_selection()
+        
     def set_WorkingLabels(self):
         working_scw = Gtk.ScrolledWindow(None, None)
         working_scw.set_name("NETSCROLLWINDOW")
@@ -269,6 +301,14 @@ class LabelClasses():
         net_scw.add(self.netview)
 
         self.labelsbox.pack_start(net_scw, False, False, 0)
+
+    def __image_view_changed(self, selection):
+        model, iter_ = selection.get_selected()
+        key = model[iter_][0]
+        self.drawing_image.edit_selection(key)
+        
+    def wrap_drawing_event(self, drawing_image):
+        self.drawing_image = drawing_image
 
     def return_NetLabelsBox(self):
         return self.labelsbox
@@ -319,6 +359,7 @@ class ImageResources():
 
     def __on_changed(self, selection):
         model, iter_ = selection.get_selected()
+        #print('model_iter:', iter_)
         #print(model[iter_][0])
         
     def return_image_resources_box(self):
@@ -353,22 +394,42 @@ class DrawingEvents():
         self.darea_width = self.darea.get_allocation().width
         self.darea_height = self.darea.get_allocation().height
         
+        self.DBBT_net = None
+        self.net_colors = {}
         self.rectangles = []
         self.current_rectangle = []
+        self.object_detections = {}
 
         self.darea.connect('draw', self.__on_draw)
+        self.darea.connect('motion-notify-event', self.__draw_motion)
+        self.darea.connect('button-press-event', self.__draw_clicked)
 
     def set_drawing_image(self, filename):
         self.rectangles = []
+        self.current_labels = []
         image = cv2.imread(filename)
         self.current_pix = self.im2pixbuf(image)
         self.darea.queue_draw()
 
+        
+        return self.object_detections
+
     
     def im2pixbuf(self, image):
-        #if self.DBBT_net is not None:
-        #    detections = self.DBBT_net.make_inference(image)
-        #    self.__draw_boxes(detections, image)
+        self.object_detections = {}
+        if self.DBBT_net is not None:
+            detections = self.DBBT_net.make_inference(image)
+            i = 0
+            for detects in detections:
+                self.current_labels.append(detects[0].decode('utf-8'))
+                label = detects[0].decode('utf-8')
+                box = detects[2]
+                fit_box = self.__get_fit_size(image, box)
+                color = self.net_colors.get(label)
+                self.object_detections.update({i:[label,fit_box,color, False]})
+                i += 1
+            #self.__draw_boxes_AI(detections, image)
+        #print('objects:', self.object_detections)
         image = cv2.resize(image, (self.darea_width, self.darea_height))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         data = image.tobytes()
@@ -376,13 +437,28 @@ class DrawingEvents():
         pix = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, self.darea_width, self.darea_height, self.darea_width*3)
         return pix
 
+    def generate_label_colors(self, labels):
+        print('number of labels:', len(labels))
+        n = len(labels)
+        for i in range(n):
+            rgb_color = colorsys.hsv_to_rgb(random.randint(0,256)/255, random.randint(0,256)/255, random.randint(120,256)/255)
+            self.net_colors.update({labels[i]:rgb_color})
+
+    def edit_selection(self, iter_):
+        for key in self.object_detections:
+            label, box, color, flag = self.object_detections.get(key)
+            self.object_detections.update({key:[label, box, color, False]})
+        #print('edit_index=',iter_)
+        self.edit_index = iter_
+        label, box, color, flag = self.object_detections.get(iter_)
+        self.object_detections.update({iter_:[label, box, color, True]})
+        self.darea.queue_draw()
+        
     def __on_draw(self, w, cr):
         if self.current_pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
             cr.paint()
-            cr.set_source_rgb(1,1,1)
-            
-            if len(self.rectangles) == 0:
+            if len(self.object_detections) == 0:
                 if len(self.current_rectangle) > 0:
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
@@ -390,6 +466,63 @@ class DrawingEvents():
                 if len(self.current_rectangle) > 0:
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
-                for x,y,w,h in self.rectangles:
+                for key in self.object_detections:
+                    #transparency = 0.2
+                    #print('key:', key)
+                    label, box, color, flag = self.object_detections.get(key)
+                    x,y,w,h = box
+                    r,g,b = color
+                    transparency = flag == True and 0.8 or 0.2
+                    #print(label, box, color, flag)
+                    cr.set_source_rgba(r,g,b,transparency)
+                    cr.rectangle(x,y,w,h)
+                    cr.fill()
+                    cr.set_source_rgb(r,g,b)
+                    cr.set_line_width(3)
                     cr.rectangle(x,y,w,h)
                     cr.stroke()
+                #print('\n\n')
+                
+    
+    def __draw_boxes_AI(self, detections, image):
+        for detects in detections:
+            classification = detects[0].decode('utf-8')
+            confidende = detects[1]
+            box = detects[2]
+            x1,y1,w,h = self.__get_fit_size(image, box)
+            self.rectangles.insert(0, [x1,y1,w,h, classification])
+        
+        self.darea.queue_draw()
+    
+    def __get_fit_size(self, image, box):
+        x = box[0]
+        y = box[1]
+        w = box[2]
+        h = box[3]
+        w_orig = self.darea_width
+        h_orig = self.darea_height
+        w_net = self.DBBT_net.net_width
+        h_net = self.DBBT_net.net_height
+
+        x_c = x/w_net
+        y_c = y/h_net
+        w_r = w/w_net
+        h_r = h/h_net
+        x_r = x_c-w_r/2
+        y_r = y_c-h_r/2
+
+        x_fit = int(x_r*w_orig)
+        y_fit = int(y_r*h_orig)
+        w_fit = int(w_r*w_orig)
+        h_fit = int(h_r*h_orig)
+
+        return x_fit, y_fit, w_fit, h_fit
+
+    def __draw_motion(self, w, e):
+        pass
+    
+    def __draw_clicked(self, w, e):
+        pass
+
+    def wrap_darknet(self, dbbtnet):
+        self.DBBT_net = dbbtnet
