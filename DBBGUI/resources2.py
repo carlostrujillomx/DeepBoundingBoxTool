@@ -227,7 +227,8 @@ class LabelClasses():
         self.box_width = int(self.screen_width*0.178)
         self.scw_width = int(self.box_width/3)
         
-        self.current_iter = None
+        self.current_key = None
+        self.current_iter_ = None
 
         self.labelsbox = Gtk.Box()
         self.labelsbox.set_size_request(0, self.box_height)
@@ -245,8 +246,10 @@ class LabelClasses():
         self.imageview = Gtk.TreeView(model = self.imagelistmodel)
         self.imageview.set_name('NETVIEW')
         renderer_text = Gtk.CellRendererText()
+        renderer_text.set_property('editable', True)
         columntext = Gtk.TreeViewColumn('id', renderer_text, text = 0)
         renderer_text2 = Gtk.CellRendererText()
+        renderer_text2.set_property('editable', True)
         columntext2 = Gtk.TreeViewColumn('label', renderer_text2, text = 1)
         
         self.imageview.append_column(columntext)
@@ -256,8 +259,12 @@ class LabelClasses():
 
         self.labelsbox.pack_start(image_scw, False, False, 0)
 
+        self.imageview.connect('key-press-event', self.__on_key_press_event)
         selection = self.imageview.get_selection()
         selection.connect('changed', self.__image_view_changed)
+
+        #renderer_text.connect('edited', self.__set_text_edited)
+        renderer_text2.connect('edited', self.__set_text_edited)
         
 
     def update_ImageLabels(self, object_detections):
@@ -267,7 +274,27 @@ class LabelClasses():
             self.imagelistmodel.append([key,label])
         self.imageview.show_all()
         selection = self.imageview.get_selection()
-        
+    
+    def __image_view_changed(self, selection):
+        model, iter_ = selection.get_selected()
+        self.current_iter_ = iter_
+        if iter_ is not None:
+            key = model[iter_][0]
+            self.current_key = key
+            self.drawing_image.edit_selection(key)
+    
+    def __on_key_press_event(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        #print('event:',e.state, 'key val, name:', e.keyval, Gdk.keyval_name(e.keyval))
+        if val_name == 'Delete':
+            self.drawing_image.delete_selection(self.current_key)
+            self.imagelistmodel.remove(self.current_iter_)
+            self.imageview.show_all()
+
+    def __set_text_edited(self, w,p,text):
+        self.imagelistmodel[p][1] = text
+        self.drawing_image.modify_selection(self.current_key, text)
+
     def set_WorkingLabels(self):
         working_scw = Gtk.ScrolledWindow(None, None)
         working_scw.set_name("NETSCROLLWINDOW")
@@ -302,10 +329,7 @@ class LabelClasses():
 
         self.labelsbox.pack_start(net_scw, False, False, 0)
 
-    def __image_view_changed(self, selection):
-        model, iter_ = selection.get_selected()
-        key = model[iter_][0]
-        self.drawing_image.edit_selection(key)
+    
         
     def wrap_drawing_event(self, drawing_image):
         self.drawing_image = drawing_image
@@ -406,12 +430,9 @@ class DrawingEvents():
 
     def set_drawing_image(self, filename):
         self.rectangles = []
-        self.current_labels = []
         image = cv2.imread(filename)
         self.current_pix = self.im2pixbuf(image)
         self.darea.queue_draw()
-
-        
         return self.object_detections
 
     
@@ -421,15 +442,12 @@ class DrawingEvents():
             detections = self.DBBT_net.make_inference(image)
             i = 0
             for detects in detections:
-                self.current_labels.append(detects[0].decode('utf-8'))
                 label = detects[0].decode('utf-8')
                 box = detects[2]
                 fit_box = self.__get_fit_size(image, box)
                 color = self.net_colors.get(label)
                 self.object_detections.update({i:[label,fit_box,color, False]})
                 i += 1
-            #self.__draw_boxes_AI(detections, image)
-        #print('objects:', self.object_detections)
         image = cv2.resize(image, (self.darea_width, self.darea_height))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         data = image.tobytes()
@@ -448,12 +466,19 @@ class DrawingEvents():
         for key in self.object_detections:
             label, box, color, flag = self.object_detections.get(key)
             self.object_detections.update({key:[label, box, color, False]})
-        #print('edit_index=',iter_)
         self.edit_index = iter_
         label, box, color, flag = self.object_detections.get(iter_)
         self.object_detections.update({iter_:[label, box, color, True]})
         self.darea.queue_draw()
-        
+
+    def delete_selection(self, iter_):
+        self.object_detections.pop(iter_, None)
+        self.darea.queue_draw()
+
+    def modify_selection(self, key, new_label):
+        label, box, color, flag = self.object_detections.get(key)
+        self.object_detections.update({key:[new_label, box, color, flag]})
+
     def __on_draw(self, w, cr):
         if self.current_pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.current_pix, 0, 0)
@@ -467,13 +492,10 @@ class DrawingEvents():
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
                 for key in self.object_detections:
-                    #transparency = 0.2
-                    #print('key:', key)
                     label, box, color, flag = self.object_detections.get(key)
                     x,y,w,h = box
                     r,g,b = color
                     transparency = flag == True and 0.8 or 0.2
-                    #print(label, box, color, flag)
                     cr.set_source_rgba(r,g,b,transparency)
                     cr.rectangle(x,y,w,h)
                     cr.fill()
@@ -481,7 +503,6 @@ class DrawingEvents():
                     cr.set_line_width(3)
                     cr.rectangle(x,y,w,h)
                     cr.stroke()
-                #print('\n\n')
                 
     
     def __draw_boxes_AI(self, detections, image):
