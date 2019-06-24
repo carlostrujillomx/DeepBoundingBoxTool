@@ -243,7 +243,7 @@ class ResourcesPanel():
         self.darea = drarea
         self.darea.connect('draw', self.__on_draw)
         self.darea.connect('motion-notify-event', self.__motion_event)
-        self.darea.connect('button-press-event', self.__drawing_clicked)
+        self.darea.connect('button_press_event', self.__drawing_clicked)
     
     def create_rectbox(self):
         self.clicked = True

@@ -26,9 +26,11 @@ class DRAWING():
         self.g_ey = None
         self.pix = None
         self.darea = Gtk.DrawingArea()
-        self.drawing_box.pack_start(self.darea, True, True, 0)
+        self.darea.set_size_request(drawing_width, drawing_height)
+        self.drawing_box.pack_start(self.darea, False, False, 0)
         self.clicked = False
-    
+
+        
     def get_drawing_area(self):
         return self.darea
 

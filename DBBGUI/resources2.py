@@ -45,22 +45,25 @@ class ResourcesPanel():
 
     def wrap_drawing_area(self, darea):
         self.darea = darea
-
+        
     def set_files(self, image_folder_path):
         self.image_folder = image_folder_path
-        self.drawing_width = self.darea.get_allocation().width 
-        self.drawing_height = self.darea.get_allocation().height
+        
+        self.DrawingImage = DrawingEvents(self.darea)
+        
         collection = self.ImageResource.set_files(image_folder_path)
         self.images_iterator = bi_iterator(collection)
 
-        self.DrawingImage = DrawingEvents(self.darea)
         filename = image_folder_path+'/'+collection[0]
+        self.DrawingImage.wrap_labels_space(self.LabelResource)
         self.DrawingImage.set_drawing_image(filename)
 
         self.DBBnet = self.DboxResource.get_darknet()
         self.DBBnet_labels = self.DboxResource.get_net_labels()
+        
         self.DrawingImage.wrap_darknet(self.DBBnet)
         self.DrawingImage.generate_label_colors(self.DBBnet_labels)
+        
         self.LabelResource.wrap_drawing_event(self.DrawingImage)
 
 
@@ -70,11 +73,9 @@ class ResourcesPanel():
             file_, index = self.images_iterator.next()
             if file_ is not "None":
                 filename = self.image_folder+'/'+file_
-                #labels = self.DrawingImage.set_drawing_image(filename)
+                labels = self.DrawingImage.set_drawing_image(filename)
                 obj_detections = self.DrawingImage.set_drawing_image(filename)
                 self.ImageResource.set_view_cursor(index)
-
-
                 self.LabelResource.update_ImageLabels(obj_detections)
         
     def prev_image(self):
@@ -84,6 +85,9 @@ class ResourcesPanel():
                 filename = self.image_folder+'/'+file_
                 labels = self.DrawingImage.set_drawing_image(filename)
                 self.ImageResource.set_view_cursor(index)
+
+    def create_rectbox(self):
+        self.DrawingImage.create_rectbox()
 
     def return_resource_box(self):
         return self.resource_box        
@@ -415,18 +419,25 @@ class bi_iterator():
 class DrawingEvents():
     def __init__(self, darea):
         self.darea = darea
+        self.current_pix = None
         self.darea_width = self.darea.get_allocation().width
         self.darea_height = self.darea.get_allocation().height
-        
+
         self.DBBT_net = None
         self.net_colors = {}
         self.rectangles = []
         self.current_rectangle = []
         self.object_detections = {}
+        self.draw_cliked = False
+        self.draw_flag = False
 
+        self.darea.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
         self.darea.connect('draw', self.__on_draw)
         self.darea.connect('motion-notify-event', self.__draw_motion)
-        self.darea.connect('button-press-event', self.__draw_clicked)
+        self.darea.connect("button-press-event", self.__drawing_clicked)
+
+        self.menuItem = labelPopover()
+        self.menuItem.wrap_drawing(self)
 
     def set_drawing_image(self, filename):
         self.rectangles = []
@@ -435,7 +446,6 @@ class DrawingEvents():
         self.darea.queue_draw()
         return self.object_detections
 
-    
     def im2pixbuf(self, image):
         self.object_detections = {}
         if self.DBBT_net is not None:
@@ -478,6 +488,14 @@ class DrawingEvents():
     def modify_selection(self, key, new_label):
         label, box, color, flag = self.object_detections.get(key)
         self.object_detections.update({key:[new_label, box, color, flag]})
+    
+    def add_object(self, label):
+        box = self.current_rectangle[0]
+        color = self.net_colors.get(label)
+        n = len(self.object_detections)
+        self.object_detections.update({n:[label,box,color, False]})
+        self.darea.queue_draw()
+        self.update_labels()
 
     def __on_draw(self, w, cr):
         if self.current_pix is not None:
@@ -489,8 +507,13 @@ class DrawingEvents():
                     cr.stroke()
             else:
                 if len(self.current_rectangle) > 0:
+                    cr.set_source_rgba(1,1,1,0.7)
+                    cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
+                    cr.fill()
+                    cr.set_line_width(3)
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
+                    
                 for key in self.object_detections:
                     label, box, color, flag = self.object_detections.get(key)
                     x,y,w,h = box
@@ -503,17 +526,6 @@ class DrawingEvents():
                     cr.set_line_width(3)
                     cr.rectangle(x,y,w,h)
                     cr.stroke()
-                
-    
-    def __draw_boxes_AI(self, detections, image):
-        for detects in detections:
-            classification = detects[0].decode('utf-8')
-            confidende = detects[1]
-            box = detects[2]
-            x1,y1,w,h = self.__get_fit_size(image, box)
-            self.rectangles.insert(0, [x1,y1,w,h, classification])
-        
-        self.darea.queue_draw()
     
     def __get_fit_size(self, image, box):
         x = box[0]
@@ -539,11 +551,82 @@ class DrawingEvents():
 
         return x_fit, y_fit, w_fit, h_fit
 
-    def __draw_motion(self, w, e):
-        pass
-    
-    def __draw_clicked(self, w, e):
-        pass
+    def create_rectbox(self):
+        self.draw_flag = True
 
+    def __draw_motion(self, w, e):
+        if self.draw_cliked:
+            x,y,w,h = self.current_rectangle[0]
+            w = e.x - x
+            h = e.y - y
+            self.current_rectangle.insert(0, [x,y, w, h])
+            self.darea.queue_draw()
+        
+    def __drawing_clicked(self, w, e):
+        if self.draw_flag:
+            self.draw_cliked = not self.draw_cliked
+        
+        if self.draw_cliked:
+            self.current_rectangle.clear()
+            self.current_rectangle.append([e.x, e.y, 0,0])
+        elif not self.draw_cliked and self.draw_flag:
+            x,y,w,h = self.current_rectangle[0]
+            w = e.x - x 
+            h = e.y - y
+            self.current_rectangle.insert(0, [x,y,w,h])
+            self.draw_flag = False
+            self.menuItem.show_menu(self.darea)
+            self.darea.queue_draw()
+            
     def wrap_darknet(self, dbbtnet):
         self.DBBT_net = dbbtnet
+    
+    def wrap_labels_space(self, labelsResource):
+        self.labelsResource = labelsResource
+
+    def clear_current_rectangle(self):
+        self.current_rectangle.clear()
+    
+    def update_labels(self):
+        self.labelsResource.update_ImageLabels(self.object_detections)
+
+class labelPopover():
+    def __init__(self):
+        self.label_popover = Gtk.Popover()
+        self.label_popover.set_name('labelPopover')
+        self.popoverBox = Gtk.Box()
+
+        self.label_entry = Gtk.Entry()
+        self.label_entry.set_text('label')
+        save_button = Gtk.Button('Save')
+        self.popoverBox.pack_start(self.label_entry, False, False, 0)
+        self.popoverBox.pack_start(save_button, False, False, 0)
+
+        self.label_popover.add(self.popoverBox)
+        
+        save_button.connect('clicked', self.__button_popdown)
+        self.label_entry.connect('key-press-event', self.__entry_key_popdown)
+
+    def wrap_drawing(self, drawinImage):
+        self.drawingImage = drawinImage
+    
+    def show_menu(self, widget):
+        self.label_popover.set_relative_to(widget)
+        self.label_popover.show_all()
+    
+    def __button_popdown(self, button):
+        label = self.label_entry.get_text()
+        self.drawingImage.add_object(label)
+        self.drawingImage.clear_current_rectangle()
+        self.label_popover.hide()
+        self.drawingImage.darea.queue_draw()
+
+    def __entry_key_popdown(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        if val_name == 'Return':
+            label = self.label_entry.get_text()
+            self.drawingImage.add_object(label)
+            self.drawingImage.clear_current_rectangle()
+            self.label_popover.hide()
+            self.drawingImage.darea.queue_draw()
+        

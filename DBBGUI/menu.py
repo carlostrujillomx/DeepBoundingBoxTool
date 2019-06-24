@@ -314,6 +314,7 @@ class MENU():
         self.drawing_wrapped = drawing_cl
 
     def __create_rectbox(self, button):
+        print('creating rectbox')
         self.resources_cl.create_rectbox()
 
     def return_menu_box(self):
