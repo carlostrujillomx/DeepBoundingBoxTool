@@ -1,7 +1,7 @@
-car
-truck
-motorbike
-bus
-heavy-truck
-person
-license-plate
+carro
+camioneta
+motocicleta
+autobus
+trailer
+persona
+placa

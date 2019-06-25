@@ -65,7 +65,7 @@ class ResourcesPanel():
         self.DrawingImage.generate_label_colors(self.DBBnet_labels)
         
         self.LabelResource.wrap_drawing_event(self.DrawingImage)
-
+        self.LabelResource.update_net_labels(self.DBBnet_labels)
 
 
     def next_image(self):
@@ -267,10 +267,8 @@ class LabelClasses():
         selection = self.imageview.get_selection()
         selection.connect('changed', self.__image_view_changed)
 
-        #renderer_text.connect('edited', self.__set_text_edited)
         renderer_text2.connect('edited', self.__set_text_edited)
         
-
     def update_ImageLabels(self, object_detections):
         self.imagelistmodel.clear()
         for key in object_detections:
@@ -316,6 +314,17 @@ class LabelClasses():
 
         self.labelsbox.pack_start(working_scw, False, False, 0)
         
+        wlabels_file = open('wlabels.txt', 'r')
+        lines = wlabels_file.readlines()
+        self.labels = []
+        for line in lines:
+            line = line.strip('\n')
+            self.workinglistmodel.append([line])
+            self.labels.append(line)
+        
+        self.workingview.show_all()
+        
+
     def set_NetLabels(self):
         net_scw = Gtk.ScrolledWindow(None, None)
         net_scw.set_name("NETSCROLLWINDOW")
@@ -333,10 +342,14 @@ class LabelClasses():
 
         self.labelsbox.pack_start(net_scw, False, False, 0)
 
-    
-        
+    def update_net_labels(self, labels):
+        for label in labels:
+            self.netlistmodel.append([label])
+        self.netview.show_all()
+
     def wrap_drawing_event(self, drawing_image):
         self.drawing_image = drawing_image
+        self.drawing_image.wrap_labels(self.labels)
 
     def return_NetLabelsBox(self):
         return self.labelsbox
@@ -352,7 +365,6 @@ class ImageResources():
 
         self.set_scrollImages()
 
-    
     def set_scrollImages(self):
         scroll_height = int(self.screen_height * 0.416)
         self.image_scw = Gtk.ScrolledWindow(None, None)
@@ -387,8 +399,6 @@ class ImageResources():
 
     def __on_changed(self, selection):
         model, iter_ = selection.get_selected()
-        #print('model_iter:', iter_)
-        #print(model[iter_][0])
         
     def return_image_resources_box(self):
         return self.image_scw
@@ -589,6 +599,10 @@ class DrawingEvents():
     
     def update_labels(self):
         self.labelsResource.update_ImageLabels(self.object_detections)
+    
+    def wrap_labels(self, labels):
+        self.menuItem.wrap_labels(labels)
+
 
 class labelPopover():
     def __init__(self):
@@ -605,10 +619,11 @@ class labelPopover():
         self.label_popover.add(self.popoverBox)
         
         save_button.connect('clicked', self.__button_popdown)
-        self.label_entry.connect('key-press-event', self.__entry_key_popdown)
+        #self.label_entry.connect('key-press-event', self.__press_popdown)
+        self.label_entry.connect('key-release-event', self.__entry_key_popdown)
 
-    def wrap_drawing(self, drawinImage):
-        self.drawingImage = drawinImage
+    def wrap_drawing(self, drawingImage):
+        self.drawingImage = drawingImage
     
     def show_menu(self, widget):
         self.label_popover.set_relative_to(widget)
@@ -629,4 +644,63 @@ class labelPopover():
             self.drawingImage.clear_current_rectangle()
             self.label_popover.hide()
             self.drawingImage.darea.queue_draw()
+        else:
+            self.suggestion.set_suggestion(self.label_entry)
+
+    def wrap_labels(self, labels):
+        self.suggestion = SecondaryPopOver(labels)
+
+class SecondaryPopOver():
+    def __init__(self, labels):
+        self.labels = labels
+        self.suggestion_popover = Gtk.Popover()
+        self.suggestion_popover.set_name('labelPopover')
+        self.suggestion_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+
         
+        self.suggestion_popover.set_position(Gtk.PositionType.BOTTOM)
+        self.suggestion_popover.set_modal(False)
+
+        self.suglistmodel = Gtk.ListStore(str)
+        self.sugview = Gtk.TreeView(model = self.suglistmodel)
+        self.sugview.set_name('NETVIEW')
+        render_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn('sug', render_text, text = 0)
+        self.sugview.append_column(columntext)
+
+        self.suggestion_popover.set_size_request(200,500)
+        self.suggestion_box.pack_start(self.sugview, True, True, 0)
+        self.suggestion_popover.add(self.suggestion_box)
+        #self.suggestion_box.pack_start(self.sugview, False, False, 0)
+        #selection = self.sugview.get_selection()
+        #selection.connect('changed', )
+
+    def set_suggestion(self, widget):
+        self.suglistmodel.clear()
+        print('sug1:', len(self.suglistmodel))
+        
+        #self.suggestion_popover.hide()
+        widget_text = widget.get_text()
+        n = len(widget_text)
+        print('key-pressed:', widget_text, n)
+        self.suggestion_popover.set_relative_to(widget)
+        i = 0
+        for label in self.labels:
+            t1 = label[:n]
+            if t1 == widget_text: 
+                print('suggestion:',label, type(label))
+                self.suglistmodel.insert(i, [label])
+                #self.suglistmodel.append([label])
+                i+=1
+
+        print('sug2:', len(self.suglistmodel))
+        self.suggestion_popover.show()
+        self.sugview.show()
+        self.suggestion_box.show()
+        
+        #self.sugview.show()
+        #self.suggestion_popover.show_all()
+        #self.suggestion_box.show_all()
+        #self.sugview.show_all()
+
+    
