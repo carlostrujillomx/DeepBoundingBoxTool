@@ -323,7 +323,10 @@ class LabelClasses():
             self.labels.append(line)
         
         self.workingview.show_all()
+        self.wrap_wlabels()
         
+    def wrap_wlabels(self):
+        self.drawing_image.set_wlabels(self.labels)
 
     def set_NetLabels(self):
         net_scw = Gtk.ScrolledWindow(None, None)
@@ -474,6 +477,9 @@ class DrawingEvents():
         data = GLib.Bytes.new(data)
         pix = GdkPixbuf.Pixbuf.new_from_bytes(data, GdkPixbuf.Colorspace.RGB, False, 8, self.darea_width, self.darea_height, self.darea_width*3)
         return pix
+
+    def set_wlabels(self, labels):
+        self.wlabels = labels
 
     def generate_label_colors(self, labels):
         print('number of labels:', len(labels))
@@ -698,9 +704,5 @@ class SecondaryPopOver():
         self.sugview.show()
         self.suggestion_box.show()
         
-        #self.sugview.show()
-        #self.suggestion_popover.show_all()
-        #self.suggestion_box.show_all()
-        #self.sugview.show_all()
 
     

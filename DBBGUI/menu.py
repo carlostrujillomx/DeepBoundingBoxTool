@@ -299,7 +299,8 @@ class MENU():
             self.__set_resources(image_folder_path)
 
     def __set_resources(self, path):
-        self.resources_cl.set_files(path)
+        #self.resources_cl.set_files(path)
+        self.resources_cl.update_Imagefiles_resources(path)
         self.resources_charged = True
 
     def __next_button_clicked(self, button):

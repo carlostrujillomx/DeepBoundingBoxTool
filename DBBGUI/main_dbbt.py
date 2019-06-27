@@ -5,7 +5,9 @@ from gi.repository import Gtk, Gdk, GdkPixbuf
 from .menu import MENU
 from .drawing import DRAWING
 #from .resources import ResourcesPanel
-from .resources2 import ResourcesPanel
+#from .resources2 import ResourcesPanel
+from .resources3 import ResourcesPanel
+
 class DBBT():
     def __init__(self, window):
         self.window = window
@@ -19,9 +21,20 @@ class DBBT():
 
         self.main_box = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL)
 
+        self.resources_manager()
+
+    def resources_manager(self):
         self.set_menu()
         self.set_drawing()
         self.set_resources()
+
+        darea = self.dbbt_drawing.get_drawing_area()
+        dw, dh = self.dbbt_drawing.get_drawing_size()
+        self.dbbt_resources.set_drawingResource(darea, dw, dh)
+
+        self.dbbt_menu.wrap_resources(self.dbbt_resources)
+        
+        
 
     def set_menu(self):
         self.dbbt_menu = MENU(self.window)
@@ -39,10 +52,10 @@ class DBBT():
         self.dbbt_resources = ResourcesPanel(self.window)
         self.resources_box = self.dbbt_resources.return_resource_box()
         self.main_box.pack_start(self.resources_box, False, False, 0)
-        self.dbbt_resources.wrap_drawing_area(self.darea)
+        #self.dbbt_resources.wrap_drawing_area(self.darea)
 
-        self.dbbt_menu.wrap_resources(self.dbbt_resources)
-        self.dbbt_menu.wrap_drawing(self.dbbt_drawing)
+        #self.dbbt_menu.wrap_resources(self.dbbt_resources)
+        #self.dbbt_menu.wrap_drawing(self.dbbt_drawing)
 
     
     def return_main_dbbt_box(self):
