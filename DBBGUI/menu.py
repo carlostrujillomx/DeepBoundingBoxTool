@@ -76,6 +76,8 @@ class MENU():
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
 
+        
+
     def set_prev_button(self):
         box = Gtk.Box()
         
@@ -160,6 +162,8 @@ class MENU():
         box.pack_start(self.save_button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
         
+        self.save_button.connect('clicked', self.__save_detections)
+
     def set_check_boxes(self):
         box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
         box.set_name("ButtonBox")
@@ -226,6 +230,8 @@ class MENU():
         button.set_image_position(Gtk.PositionType.TOP)
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
+
+        button.connect('clicked', self.__delete_rectbox)
 
     def set_zoomin_button(self):
         box = Gtk.Box()
@@ -317,6 +323,13 @@ class MENU():
     def __create_rectbox(self, button):
         print('creating rectbox')
         self.resources_cl.create_rectbox()
+
+    def __delete_rectbox(self, button):
+        print('deleting rectbox')
+        self.resources_cl.delete_rectbox()
+
+    def __save_detections(self, button):
+        self.resources_cl.save_detections()
 
     def return_menu_box(self):
         return self.menu_box

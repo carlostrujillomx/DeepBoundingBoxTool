@@ -75,6 +75,12 @@ class ResourcesPanel():
     def create_rectbox(self):
         self.drawingImage.create_rectbox()
 
+    def delete_rectbox(self):
+        self.drawingImage.clear_current_rectangle()
+
+    def save_detections(self):
+        self.drawingImage.save_detections()
+
     def return_resource_box(self):
         return self.resource_box
 

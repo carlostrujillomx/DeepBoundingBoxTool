@@ -32,7 +32,6 @@ class DrawingEvents():
         self.darea.connect('draw', self.__on_draw)
         self.darea.connect('motion-notify-event', self.__draw_motion)
         self.darea.connect("button-press-event", self.__drawing_clicked)
-
         self.menuItem = LabelPop()
 
     def set_DBBNet(self, configPath, weightPath, metaPath):
@@ -212,6 +211,11 @@ class DrawingEvents():
     
     def clear_current_rectangle(self):
         self.current_rectangle.clear()
+        self.darea.queue_draw()
+
+    def __key_pressed(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        print('val name:', val_name)
 
     def __draw_motion(self, w, e):
         if self.draw_clicked:
@@ -236,6 +240,15 @@ class DrawingEvents():
             self.draw_flag = False
             self.menuItem.show_menu(self.darea)
             self.darea.queue_draw()
+    
+    def save_detections(self):
+        obj2save = []
+        for key in self.objects_detected:
+            for label in self.w_colors:
+                nlabel, box, color, f = self.objects_detected.get(key)
+                if nlabel == label:
+                    obj2save.append(nlabel)
+        print('labels saved:', obj2save)
 
 class DARKNET():
     def __init__(self, configPath, weightPath, metaPath):
@@ -298,12 +311,17 @@ class LabelPop():
 
         save_button.connect('clicked', self.__save_button_clicked)
         self.LEntry.connect('key-release-event', self.__entry_key_pressed)
+        
 
+    def __popover_key(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        print('val_name:', val_name)
+        
     def wrap_drawing(self, drawingImage):
         self.drawingImage = drawingImage
 
     def wrap_labels(self, labels):
-        self.SuggestionPopover = SecondaryPopOver(labels)
+        self.SuggestionPopover = SecondaryPopOver(labels, self.LEntry)
 
     def show_menu(self, widget):
         self.LPopover.set_relative_to(widget)
@@ -318,18 +336,20 @@ class LabelPop():
     
     def __entry_key_pressed(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
+        print('val_name:', val_name)
         if val_name == 'Return':
             label = self.LEntry.get_text()
             self.drawingImage.add_object(label)
             self.drawingImage.clear_current_rectangle()
             self.LPopover.hide()
-            self.drawingImage.queue_draw()
+            self.drawingImage.darea.queue_draw()
         else:
-            self.SuggestionPopover.set_suggestion(self.LEntry)
+            self.SuggestionPopover.set_suggestion()
 
 
 class SecondaryPopOver():
-    def __init__(self, labels):
+    def __init__(self, labels, entry):
+        self.entry = entry
         self.labels = labels
         self.suggestion_popover = Gtk.Popover()
         self.suggestion_popover.set_name('labelPopover')
@@ -350,19 +370,19 @@ class SecondaryPopOver():
         self.suggestion_box.pack_start(self.sugview, True, True, 0)
         self.suggestion_popover.add(self.suggestion_box)
         #self.suggestion_box.pack_start(self.sugview, False, False, 0)
-        #selection = self.sugview.get_selection()
-        #selection.connect('changed', )
+        selection = self.sugview.get_selection()
+        selection.connect('changed', self.__op_selected)
 
-    
-    def set_suggestion(self, widget):
+    def set_suggestion(self):
         self.suglistmodel.clear()
         print('sug1:', len(self.suglistmodel))
         
         #self.suggestion_popover.hide()
-        widget_text = widget.get_text()
+        #widget_text = widget.get_text()
+        widget_text = self.entry.get_text()
         n = len(widget_text)
         print('key-pressed:', widget_text, n)
-        self.suggestion_popover.set_relative_to(widget)
+        self.suggestion_popover.set_relative_to(self.entry)
         i = 0
         for label in self.labels:
             t1 = label[:n]
@@ -377,3 +397,9 @@ class SecondaryPopOver():
         self.sugview.show()
         self.suggestion_box.show()
         
+    def __op_selected(self, selection):
+        model, self.it = selection.get_selected()
+        if self.it is not None:
+            label = model[self.it][0]
+            self.entry.set_text(label)
+            print('label selected:', label)
