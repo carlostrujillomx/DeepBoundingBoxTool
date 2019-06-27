@@ -47,6 +47,8 @@ class ResourcesPanel():
         self.drawingImage = DrawingResource.DrawingEvents(darea, dw, dh)
         self.DLFiles.wrap_drawing(self.drawingImage)
         self.drawingImage.generate_working_colors(self.LWindow.get_workingLabels())
+        self.drawingImage.wrap_LabelsWindow(self.LWindow)
+        self.LWindow.wrap_drawing(self.drawingImage)
 
     def  update_Imagefiles_resources(self, path):
         self.image_folder = path
@@ -69,7 +71,10 @@ class ResourcesPanel():
             if filename is not "None":
                 self.IResources.set_view_cursor(index)
                 self.drawingImage.set_drawing(filename)
-            
+    
+    def create_rectbox(self):
+        self.drawingImage.create_rectbox()
+
     def return_resource_box(self):
         return self.resource_box
 

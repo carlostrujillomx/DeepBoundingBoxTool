@@ -23,15 +23,17 @@ class DrawingEvents():
         self.net_colors = {}
         self.w_colors = {}
         self.objects_detected = {}
-
+        
         self.current_rectangle = []
         self.draw_clicked = False
         self.draw_flag = False
 
         self.darea.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
         self.darea.connect('draw', self.__on_draw)
-        #self.darea.connect('motion-notify-event', self.__draw_motion)
-        #self.darea.connect("button-press-event", self.__drawing_clicked)
+        self.darea.connect('motion-notify-event', self.__draw_motion)
+        self.darea.connect("button-press-event", self.__drawing_clicked)
+
+        self.menuItem = LabelPop()
 
     def set_DBBNet(self, configPath, weightPath, metaPath):
         self.DBB_Net = DARKNET(configPath, weightPath, metaPath)
@@ -62,30 +64,26 @@ class DrawingEvents():
     
     def generate_net_colors(self, labels):
         n = len(labels)
-        r = int(n/3)
+        ratio = n/3
+        step = 255/ratio
+
         h = 0
-        s = 100
-        v = 100
-
-        step = 255/r
-
+        s = 255
+        v = 255
+        
         for i in range(n):
-            if i < r:
-                h += step
-            elif i < r*2:
-                h += step
-                s = 180
-                v = 180
-            elif i <  r*3:
-                h += step
-                s = 255
-                v = 255
+            color = colorsys.hsv_to_rgb(h/255,s/255,v/255)
+            self.net_colors.update({labels[i]: color})
+            h += step*3
             if h >= 255:
                 h = 0
-            color = colorsys.hsv_to_rgb(h,s,v)
-            self.net_colors.update({labels[i]:color})
-        print(self.net_colors)
-
+                s -= step
+                if s <= 0:
+                    s = 255
+                    v -= step
+                    if  v<= 0:
+                        v = 255
+    
     def __on_draw(self, w, cr):
         if self.pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.pix, 0, 0)
@@ -134,6 +132,7 @@ class DrawingEvents():
                 i += 1
         self.pix = self.__im2pixbuf(image)
         self.darea.queue_draw()
+        self.LWindow.update_ImageLabels(self.objects_detected)
                 
     def __im2pixbuf(self, image):
         image = cv2.resize(image, (self.darea_width, self.darea_height))
@@ -145,38 +144,51 @@ class DrawingEvents():
 
     def generate_working_colors(self, labels):
         n = len(labels)
-        r = int(n/3)
+        ratio = n/3
+        step = 255/ratio
+
         h = 0
-        s = 100
-        v = 100
-
-        step = 255/r
-
+        s = 255
+        v = 255
+        
         for i in range(n):
-            if i < r:
-                h += step
-            elif i < r*2:
-                h += step
-                s = 180
-                v = 180
-            elif i <  r*3:
-                h += step
-                s = 255
-                v = 255
+            color = colorsys.hsv_to_rgb(h/255,s/255,v/255)
+            self.w_colors.update({labels[i]: color})
+            h += step*3
             if h >= 255:
                 h = 0
-            color = colorsys.hsv_to_rgb(h,s,v)
-            self.w_colors.update({labels[i]:color})
-        
-        print(self.w_colors)
+                s -= step
+                if s <= 0:
+                    s = 255
+                    v -= step
+                    if  v<= 0:
+                        v = 255
+        self.menuItem.wrap_labels(labels)
+        self.menuItem.wrap_drawing(self)
+        #print(self.w_colors)
 
-    def edit_selection(self, it):
+    def update_labels(self):
+        self.LWindow.update_ImageLabels(self.objects_detected)
+
+    def edit_view_selection(self, it):
         for key in self.objects_detected:
             label, box, color, flag = self.objects_detected.get(key)
             self.objects_detected.update({key:[label, box, color, False]})
         self.edit_index = it
+
         label, box, color, flag = self.objects_detected.get(it)
         self.objects_detected.update({it:[label, box, color, True]})
+        self.darea.queue_draw()
+
+    def edit_selection(self, edit_key, edit_label):
+        for key in self.objects_detected:
+            label, box, color, flag = self.objects_detected.get(key)
+            self.objects_detected.update({key:[label, box, color, False]})
+        self.edit_index = edit_key
+
+        label, box, color, flag = self.objects_detected.get(edit_key)
+        color = self.w_colors.get(edit_label)
+        self.objects_detected.update({edit_key:[edit_label, box, color, True]})
         self.darea.queue_draw()
     
     def delete_selection(self, iter_):
@@ -189,17 +201,20 @@ class DrawingEvents():
     
     def add_object(self, label):
         box = self.current_rectangle[0]
-        color = self.net_colors.get(label) #change with working colors
+        color = self.w_colors.get(label) #change with working colors
         n = len(self.objects_detected)
         self.objects_detected.update({n:[label,box,color, False]})
         self.darea.queue_draw()
-        #self.update_labels()
+        self.update_labels()
 
     def create_rectbox(self):
         self.draw_flag = True
     
+    def clear_current_rectangle(self):
+        self.current_rectangle.clear()
+
     def __draw_motion(self, w, e):
-        if self.draw_cliked:
+        if self.draw_clicked:
             x,y,w,h = self.current_rectangle[0]
             w = e.x - x
             h = e.y - y
@@ -208,12 +223,12 @@ class DrawingEvents():
         
     def __drawing_clicked(self, w, e):
         if self.draw_flag:
-            self.draw_cliked = not self.draw_cliked
+            self.draw_clicked = not self.draw_clicked
         
-        if self.draw_cliked:
+        if self.draw_clicked:
             self.current_rectangle.clear()
             self.current_rectangle.append([e.x, e.y, 0,0])
-        elif not self.draw_cliked and self.draw_flag:
+        elif not self.draw_clicked and self.draw_flag:
             x,y,w,h = self.current_rectangle[0]
             w = e.x - x 
             h = e.y - y
@@ -264,8 +279,9 @@ class DARKNET():
 
         return names_list
 
+
 class LabelPop():
-    def __init__(self, window):
+    def __init__(self):
         self.LPopover = Gtk.Popover()
         self.LPopover.set_name('labelPopover')
         self.PopoverBox = Gtk.Box()
@@ -280,6 +296,84 @@ class LabelPop():
 
         self.LPopover.add(self.PopoverBox)
 
-        #save_button.connect('clicked', self.__save_button_clicked)
-        #self.LEntry.connect('key-press-event', self.__entry_key_pressed)
+        save_button.connect('clicked', self.__save_button_clicked)
+        self.LEntry.connect('key-release-event', self.__entry_key_pressed)
+
+    def wrap_drawing(self, drawingImage):
+        self.drawingImage = drawingImage
+
+    def wrap_labels(self, labels):
+        self.SuggestionPopover = SecondaryPopOver(labels)
+
+    def show_menu(self, widget):
+        self.LPopover.set_relative_to(widget)
+        self.LPopover.show_all()
+
+    def __save_button_clicked(self, button):
+        label = self.LEntry.get_text()
+        self.drawingImage.add_object(label)
+        self.drawingImage.clear_current_rectangle()
+        self.LPopover.hide()
+        self.drawingImage.darea.queue_draw()
     
+    def __entry_key_pressed(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        if val_name == 'Return':
+            label = self.LEntry.get_text()
+            self.drawingImage.add_object(label)
+            self.drawingImage.clear_current_rectangle()
+            self.LPopover.hide()
+            self.drawingImage.queue_draw()
+        else:
+            self.SuggestionPopover.set_suggestion(self.LEntry)
+
+
+class SecondaryPopOver():
+    def __init__(self, labels):
+        self.labels = labels
+        self.suggestion_popover = Gtk.Popover()
+        self.suggestion_popover.set_name('labelPopover')
+        self.suggestion_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL)
+
+        
+        self.suggestion_popover.set_position(Gtk.PositionType.BOTTOM)
+        self.suggestion_popover.set_modal(False)
+
+        self.suglistmodel = Gtk.ListStore(str)
+        self.sugview = Gtk.TreeView(model = self.suglistmodel)
+        self.sugview.set_name('NETVIEW')
+        render_text = Gtk.CellRendererText()
+        columntext = Gtk.TreeViewColumn('sug', render_text, text = 0)
+        self.sugview.append_column(columntext)
+
+        self.suggestion_popover.set_size_request(200,500)
+        self.suggestion_box.pack_start(self.sugview, True, True, 0)
+        self.suggestion_popover.add(self.suggestion_box)
+        #self.suggestion_box.pack_start(self.sugview, False, False, 0)
+        #selection = self.sugview.get_selection()
+        #selection.connect('changed', )
+
+    
+    def set_suggestion(self, widget):
+        self.suglistmodel.clear()
+        print('sug1:', len(self.suglistmodel))
+        
+        #self.suggestion_popover.hide()
+        widget_text = widget.get_text()
+        n = len(widget_text)
+        print('key-pressed:', widget_text, n)
+        self.suggestion_popover.set_relative_to(widget)
+        i = 0
+        for label in self.labels:
+            t1 = label[:n]
+            if t1 == widget_text: 
+                print('suggestion:',label, type(label))
+                self.suglistmodel.insert(i, [label])
+                #self.suglistmodel.append([label])
+                i+=1
+
+        print('sug2:', len(self.suglistmodel))
+        self.suggestion_popover.show()
+        self.sugview.show()
+        self.suggestion_box.show()
+        

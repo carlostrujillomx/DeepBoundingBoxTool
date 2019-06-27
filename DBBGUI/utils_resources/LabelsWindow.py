@@ -28,8 +28,7 @@ class LabelClasses():
     def wrap_drawing(self, drawingEvent):
         self.CFLabels.wrap_drawing(drawingEvent)
         self.WLabels.wrap_drawing(drawingEvent)
-        self.NLabels.wrap_drawing(drawingEvent)
-    
+        
     def update_ImageLabels(self, objects_detected):
         self.CFLabels.update_ImageLabels(objects_detected)
 
@@ -62,7 +61,7 @@ class CurrentFileLabels():
         self.scrollWindow.set_size_request(self.scw_width, self.box_height)
         self.scrollWindow.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
 
-        self.listmodel = Gtk.ListStore(str)
+        self.listmodel = Gtk.ListStore(str, int)
         self.view = Gtk.TreeView(model = self.listmodel)
         self.view.set_name('NETVIEW')
         
@@ -86,7 +85,7 @@ class CurrentFileLabels():
         self.listmodel.clear()
         for key in objects_detected:
             label, box, color, flag = objects_detected.get(key)
-            self.listmodel.append([label])
+            self.listmodel.append([label, key])
         self.view.show_all()
         
         selection = self.view.get_selection()
@@ -97,19 +96,24 @@ class CurrentFileLabels():
     def __image_view_changed(self, selection):
         model, self.it, = selection.get_selected()
         if self.it is not None:
-            self.key = model[self.it][0]
-            self.drawingEvent.edit_selection(self.key)
+            self.key = int(model[self.it][1])
+            self.drawingEvent.edit_view_selection(self.key)
+            #self.drawingEvent.edit_selection(self.key)
     
     def __on_key_press_event(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
+        print('val_name:', val_name)
         if val_name == 'Delete':
             self.drawingEvent.delete_selection(self.key)
             self.listmodel.remove(self.it)
             self.view.show_all()
     
     def __set_text_edited(self, w, p, text):
-        self.listmodel[p][1] = text
-        self.drawingEvent.modify_selection(self.key, text)
+        #print('edited:', text, type(text), len(text))
+        self.listmodel[p][0] = text
+        self.drawingEvent.edit_selection(self.key, text)
+        #self.current_text = text
+        #self.drawingEvent.modify_selection(self.key, text)
             
     def return_currentFileWindow(self):
         return self.scrollWindow

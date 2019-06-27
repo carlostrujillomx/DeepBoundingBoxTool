@@ -33,8 +33,6 @@ class DBBT():
         self.dbbt_resources.set_drawingResource(darea, dw, dh)
 
         self.dbbt_menu.wrap_resources(self.dbbt_resources)
-        
-        
 
     def set_menu(self):
         self.dbbt_menu = MENU(self.window)
