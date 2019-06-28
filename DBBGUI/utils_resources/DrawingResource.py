@@ -23,6 +23,8 @@ class DrawingEvents():
         self.net_colors = {}
         self.w_colors = {}
         self.objects_detected = {}
+        self.filename = None
+        self.save_folder_path = None
         
         self.current_rectangle = []
         self.draw_clicked = False
@@ -118,6 +120,7 @@ class DrawingEvents():
 
     def set_drawing(self, filename):
         self.objects_detected = {}
+        self.filename = filename
         image = cv2.imread(filename)
         if self.DBB_Net is not None:
             detections = self.DBB_Net.make_inference(image)
@@ -152,7 +155,7 @@ class DrawingEvents():
         
         for i in range(n):
             color = colorsys.hsv_to_rgb(h/255,s/255,v/255)
-            self.w_colors.update({labels[i]: color})
+            self.w_colors.update({labels[i]: [color, i]})
             h += step*3
             if h >= 255:
                 h = 0
@@ -186,7 +189,7 @@ class DrawingEvents():
         self.edit_index = edit_key
 
         label, box, color, flag, rbox = self.objects_detected.get(edit_key)
-        color = self.w_colors.get(edit_label)
+        color = self.w_colors.get(edit_label)[0]
         self.objects_detected.update({edit_key:[edit_label, box, color, True, rbox]})
         self.darea.queue_draw()
     
@@ -208,7 +211,7 @@ class DrawingEvents():
         y_yolo = yr+hr/2
 
         rbox = [x_yolo, y_yolo, wr, hr]
-        color = self.w_colors.get(label) #change with working colors
+        color = self.w_colors.get(label)[0] #change with working colors
         n = len(self.objects_detected)
         self.objects_detected.update({n:[label,box,color, False, rbox]})
         self.darea.queue_draw()
@@ -251,12 +254,33 @@ class DrawingEvents():
     
     def save_detections(self):
         obj2save = []
+        if self.filename is not None and self.save_folder_path is not None:
+            filewoext = self.filename.split('.')[0]
+            file_ = filewoext.split('/')[-1]
+            filename = self.save_folder_path+'/'+file_+'.txt'
+            print('filename:', filename)
+            file_ = open(filename, 'w')
         for key in self.objects_detected:
-            for label in self.w_colors:
+            for wkey in self.w_colors:
+                c, index_label = self.w_colors.get(wkey)
                 nlabel, box, color, f, rbox = self.objects_detected.get(key)
-                if nlabel == label:
-                    obj2save.append([nlabel, rbox])
-        print('labels saved:', obj2save)
+                if nlabel == wkey:
+                    obj2save.append([nlabel, rbox, index_label])
+        for obj in obj2save:
+            index = obj[2]
+            box_str = obj[1]
+            x,y,w,h = box_str
+            list2save = [index, x,y,w,h]
+            str_list2save = ' '.join(str(param) for param in list2save) 
+            print('ob2save', type(list2save), type(str_list2save), str_list2save)
+
+            
+            file_.write(str_list2save+'\n')
+        file_.close()
+        #print('labels saved:', obj2save)
+    
+    def set_save_folder(self, save_folder_path):
+        self.save_folder_path = save_folder_path
 
 class DARKNET():
     def __init__(self, configPath, weightPath, metaPath):

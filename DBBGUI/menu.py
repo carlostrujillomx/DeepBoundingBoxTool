@@ -76,7 +76,7 @@ class MENU():
         box.pack_start(button, True, True, 0)
         self.menu_box.pack_start(box, False, False, 0)
 
-        
+        button.connect('clicked', self.__save_folder_clicked)
 
     def set_prev_button(self):
         box = Gtk.Box()
@@ -330,6 +330,14 @@ class MENU():
 
     def __save_detections(self, button):
         self.resources_cl.save_detections()
+
+    def __save_folder_clicked(self, button):
+        dialog = Gtk.FileChooserDialog('Choose a Folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER|Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        response = dialog.run()
+        save_folder_path = dialog.get_filename()
+        dialog.destroy()
+        if response == -5:
+            self.resources_cl.set_save_folder(save_folder_path)
 
     def return_menu_box(self):
         return self.menu_box

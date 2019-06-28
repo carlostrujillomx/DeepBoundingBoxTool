@@ -81,6 +81,9 @@ class ResourcesPanel():
     def save_detections(self):
         self.drawingImage.save_detections()
 
+    def set_save_folder(self, save_path):
+        self.drawingImage.set_save_folder(save_path)
+
     def return_resource_box(self):
         return self.resource_box
 
