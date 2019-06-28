@@ -84,7 +84,7 @@ class CurrentFileLabels():
     def update_ImageLabels(self, objects_detected):
         self.listmodel.clear()
         for key in objects_detected:
-            label, box, color, flag = objects_detected.get(key)
+            label, box, color, flag, rbox = objects_detected.get(key)
             self.listmodel.append([label, key])
         self.view.show_all()
         

@@ -59,7 +59,7 @@ class DrawingEvents():
         w_fit = int(w_r*w_orig)
         h_fit = int(h_r*h_orig)
 
-        return x_fit, y_fit, w_fit, h_fit
+        return [x_fit, y_fit, w_fit, h_fit], [x_r+w_r/2,y_r+h_r/2, w_r, h_r]
     
     def generate_net_colors(self, labels):
         n = len(labels)
@@ -101,7 +101,7 @@ class DrawingEvents():
                     cr.stroke()
                     
                 for key in self.objects_detected:
-                    label, box, color, flag = self.objects_detected.get(key)
+                    label, box, color, flag, rbox = self.objects_detected.get(key)
                     x,y,w,h = box
                     r,g,b = color
                     transparency = flag == True and 0.8 or 0.2
@@ -125,9 +125,9 @@ class DrawingEvents():
             for detect in detections:
                 label = detect[0].decode('utf-8')
                 box = detect[2]
-                fit_box = self.__get_fit_size(image, box)
+                fit_box, rbox = self.__get_fit_size(image, box)
                 color = self.net_colors.get(label)
-                self.objects_detected.update({i:[label, fit_box, color, False]})
+                self.objects_detected.update({i:[label, fit_box, color, False, rbox]})
                 i += 1
         self.pix = self.__im2pixbuf(image)
         self.darea.queue_draw()
@@ -171,23 +171,23 @@ class DrawingEvents():
 
     def edit_view_selection(self, it):
         for key in self.objects_detected:
-            label, box, color, flag = self.objects_detected.get(key)
-            self.objects_detected.update({key:[label, box, color, False]})
+            label, box, color, flag, rbox = self.objects_detected.get(key)
+            self.objects_detected.update({key:[label, box, color, False, rbox]})
         self.edit_index = it
 
-        label, box, color, flag = self.objects_detected.get(it)
-        self.objects_detected.update({it:[label, box, color, True]})
+        label, box, color, flag, rbox = self.objects_detected.get(it)
+        self.objects_detected.update({it:[label, box, color, True, rbox]})
         self.darea.queue_draw()
 
     def edit_selection(self, edit_key, edit_label):
         for key in self.objects_detected:
-            label, box, color, flag = self.objects_detected.get(key)
-            self.objects_detected.update({key:[label, box, color, False]})
+            label, box, color, flag, rbox = self.objects_detected.get(key)
+            self.objects_detected.update({key:[label, box, color, False, rbox]})
         self.edit_index = edit_key
 
-        label, box, color, flag = self.objects_detected.get(edit_key)
+        label, box, color, flag, rbox = self.objects_detected.get(edit_key)
         color = self.w_colors.get(edit_label)
-        self.objects_detected.update({edit_key:[edit_label, box, color, True]})
+        self.objects_detected.update({edit_key:[edit_label, box, color, True, rbox]})
         self.darea.queue_draw()
     
     def delete_selection(self, iter_):
@@ -195,14 +195,22 @@ class DrawingEvents():
         self.darea.queue_draw()
     
     def modify_selection(self, key, new_label):
-        label, box, color, flag = self.objects_detected.get(key)
-        self.objects_detected.update({key:[new_label, box, color, flag]})
+        label, box, color, flag, rbox = self.objects_detected.get(key)
+        self.objects_detected.update({key:[new_label, box, color, flag, rbox]})
     
     def add_object(self, label):
         box = self.current_rectangle[0]
+        xr = box[0]/self.darea_width
+        yr = box[1]/self.darea_height
+        wr = box[2]/self.darea_width
+        hr = box[3]/self.darea_height
+        x_yolo = xr+wr/2
+        y_yolo = yr+hr/2
+
+        rbox = [x_yolo, y_yolo, wr, hr]
         color = self.w_colors.get(label) #change with working colors
         n = len(self.objects_detected)
-        self.objects_detected.update({n:[label,box,color, False]})
+        self.objects_detected.update({n:[label,box,color, False, rbox]})
         self.darea.queue_draw()
         self.update_labels()
 
@@ -245,9 +253,9 @@ class DrawingEvents():
         obj2save = []
         for key in self.objects_detected:
             for label in self.w_colors:
-                nlabel, box, color, f = self.objects_detected.get(key)
+                nlabel, box, color, f, rbox = self.objects_detected.get(key)
                 if nlabel == label:
-                    obj2save.append(nlabel)
+                    obj2save.append([nlabel, rbox])
         print('labels saved:', obj2save)
 
 class DARKNET():
