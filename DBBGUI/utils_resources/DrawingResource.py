@@ -24,7 +24,7 @@ class DrawingEvents():
         self.w_colors = {}
         self.objects_detected = {}
         self.filename = None
-        self.save_folder_path = None
+        self.save_folder_path = 'training'
         
         self.current_rectangle = []
         self.draw_clicked = False
@@ -121,21 +121,77 @@ class DrawingEvents():
     def set_drawing(self, filename):
         self.objects_detected = {}
         self.filename = filename
-        image = cv2.imread(filename)
-        if self.DBB_Net is not None:
-            detections = self.DBB_Net.make_inference(image)
-            i = 0
-            for detect in detections:
-                label = detect[0].decode('utf-8')
-                box = detect[2]
-                fit_box, rbox = self.__get_fit_size(image, box)
-                color = self.net_colors.get(label)
-                self.objects_detected.update({i:[label, fit_box, color, False, rbox]})
-                i += 1
-        self.pix = self.__im2pixbuf(image)
-        self.darea.queue_draw()
-        self.LWindow.update_ImageLabels(self.objects_detected)
-                
+        filewoext = filename.split('.')[0]
+        filewoext = filewoext.split('/')[-1]
+        filexist = False
+        if self.save_folder_path is not None:
+            txtfile = self.save_folder_path+'/'+filewoext+'.txt'
+            filexist = os.path.exists(txtfile)
+        print('current file:', txtfile)
+        if not filexist:
+            image = cv2.imread(filename)
+            if self.DBB_Net is not None:
+                detections = self.DBB_Net.make_inference(image)
+                i = 0
+                for detect in detections:
+                    label = detect[0].decode('utf-8')
+                    box = detect[2]
+                    fit_box, rbox = self.__get_fit_size(image, box)
+                    color = self.net_colors.get(label)
+                    self.objects_detected.update({i:[label, fit_box, color, False, rbox]})
+                    i += 1
+            self.pix = self.__im2pixbuf(image)
+            self.darea.queue_draw()
+            self.LWindow.update_ImageLabels(self.objects_detected)
+        else:
+            image = cv2.imread(filename)
+            self.txt_objects_detected(filename, txtfile)
+            self.pix = self.__im2pixbuf(image)
+            self.darea.queue_draw()
+            self.LWindow.update_ImageLabels(self.objects_detected)
+
+    def txt_objects_detected(self, imagefile, txtfile):
+        file_ = open(txtfile, 'r')
+        lines = file_.readlines()
+        for line in lines:
+            id_class, x_yolo, y_yolo, wr, hr = line.split(' ')
+            id_class = int(id_class)
+            x_yolo = float(x_yolo)
+            y_yolo = float(y_yolo)
+            wr = float(wr)
+            hr = float(hr)
+            #print(id_class, x_yolo, y_yolo, wr, hr, type(id_class), type(x_yolo), type(wr), type(hr))
+            
+            xup = x_yolo * self.darea_width
+            yup = y_yolo*self.darea_height
+            w = wr*self.darea_width
+            h = hr*self.darea_height
+            x = xup - w/2
+            y = yup - h/2
+            for wkey in self.w_colors:
+                c, index_label = self.w_colors.get(wkey)
+                if index_label == id_class:
+                    label = wkey
+                    i = len(self.objects_detected)
+                    self.objects_detected.update({i:[label, [x,y,w,h], c, False, [x_yolo, y_yolo, wr, hr]]})
+             
+
+    def regroup_objects(self):
+        i = 0
+        temporal_dict = {}
+        #print('old:', self.objects_detected)
+        for key in self.objects_detected:
+            label, box, color, f, rbox = self.objects_detected.get(key)
+            #print(key, sep=' ')
+            temporal_dict.update({i:[label, box, color, f, rbox]})
+            i += 1
+        print()
+        self.objects_detected = temporal_dict
+        for key in self.objects_detected:
+            label, box, color, f, rbox = self.objects_detected.get(key)
+            print(key, label)
+        print()
+
     def __im2pixbuf(self, image):
         image = cv2.resize(image, (self.darea_width, self.darea_height))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -194,7 +250,11 @@ class DrawingEvents():
         self.darea.queue_draw()
     
     def delete_selection(self, iter_):
+        for key in self.objects_detected:
+            label, box, color, f, rbox = self.objects_detected.get(key)
+            print(key, label)
         self.objects_detected.pop(iter_, None)
+        self.regroup_objects()
         self.darea.queue_draw()
     
     def modify_selection(self, key, new_label):
