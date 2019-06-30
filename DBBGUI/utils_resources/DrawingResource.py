@@ -10,6 +10,7 @@ import colorsys
 
 from DBBGUI import darknet
 import os
+from shutil import copyfile
 
 class DrawingEvents():
     def __init__(self, darea, darea_width, darea_height):
@@ -316,9 +317,14 @@ class DrawingEvents():
         obj2save = []
         if self.filename is not None and self.save_folder_path is not None:
             filewoext = self.filename.split('.')[0]
+            justfile = filewoext.split('/')[-1]
+            jpgimage2save = self.save_folder_path+'/'+justfile+'.jpg'
+            image = cv2.imread(self.filename)
+            print('source:',self.filename, 'dst:', jpgimage2save, image.shape)
+            cv2.imwrite(jpgimage2save, image)
+            
             file_ = filewoext.split('/')[-1]
             filename = self.save_folder_path+'/'+file_+'.txt'
-            print('filename:', filename)
             file_ = open(filename, 'w')
         for key in self.objects_detected:
             for wkey in self.w_colors:
@@ -332,13 +338,9 @@ class DrawingEvents():
             x,y,w,h = box_str
             list2save = [index, x,y,w,h]
             str_list2save = ' '.join(str(param) for param in list2save) 
-            print('ob2save', type(list2save), type(str_list2save), str_list2save)
-
-            
             file_.write(str_list2save+'\n')
         file_.close()
-        #print('labels saved:', obj2save)
-    
+        
     def set_save_folder(self, save_folder_path):
         self.save_folder_path = save_folder_path
 
