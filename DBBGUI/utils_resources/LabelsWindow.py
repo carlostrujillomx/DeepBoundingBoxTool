@@ -83,7 +83,6 @@ class CurrentFileLabels():
         
 
     def update_ImageLabels(self, objects_detected):
-        #self.view.handler_block(self.key_pressed_id)
         self.selection.handler_block(self.selection_handler)
         self.listmodel.clear()
         for key in objects_detected:
@@ -91,7 +90,6 @@ class CurrentFileLabels():
             self.listmodel.append([label, key])
         self.view.show_all()
         
-        self.key = None
         self.selection.handler_unblock(self.selection_handler)
         self.selection = self.view.get_selection()
         
@@ -105,32 +103,20 @@ class CurrentFileLabels():
         
         if self.it is not None:
             self.key = int(model[self.it][1])
-            print('\n\n')
-            print('it:', self.key)
-            print('\n\n')
-            #print('current_key:', self.key)
+            #print('it:', self.key, type(self.key))
             self.drawingEvent.edit_view_selection(self.key)
-            #self.drawingEvent.edit_selection(self.key)
-    
+            
     def __on_key_press_event(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
-        #print('val_name:', val_name)
         if val_name == 'Delete':
-            self.selection.handler_block(self.selection_handler)
             self.drawingEvent.delete_selection(self.key)
-            #self.listmodel.remove(self.it)
             self.view.show_all()
-            self.selection.handler_unblock(self.selection_handler)
-            
             self.view.set_cursor(self.key)
 
     def __set_text_edited(self, w, p, text):
-        #print('edited:', text, type(text), len(text))
         self.listmodel[p][0] = text
         self.drawingEvent.edit_selection(self.key, text)
-        #self.current_text = text
-        #self.drawingEvent.modify_selection(self.key, text)
-            
+             
     def return_currentFileWindow(self):
         return self.scrollWindow
 
