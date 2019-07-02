@@ -64,8 +64,8 @@ class CurrentFileLabels():
         self.listmodel = Gtk.ListStore(str, int)
         self.view = Gtk.TreeView(model = self.listmodel)
         self.view.set_name('NETVIEW')
-        self.view.set_can_focus(False)
-
+        #self.listmodel.set_can_focus(False)
+        self.view.set_enable_search(False)
         renderText = Gtk.CellRendererText()
         renderText.set_property('editable', True)
         
