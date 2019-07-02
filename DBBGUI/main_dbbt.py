@@ -45,7 +45,9 @@ class DBBT():
         drawing_box = self.dbbt_drawing.return_drawing_box()
         self.darea = self.dbbt_drawing.get_drawing_area()
         self.main_box.pack_start(drawing_box, False ,False, spacing)
-    
+
+        #self.dbbt_menu.wrap_drawing(self.darea)
+
     def set_resources(self):
         self.dbbt_resources = ResourcesPanel(self.window)
         self.resources_box = self.dbbt_resources.return_resource_box()

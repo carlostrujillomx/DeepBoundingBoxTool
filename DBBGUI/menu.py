@@ -19,6 +19,7 @@ class MENU():
 
         self.resources_charged = False
 
+        self.window.set_can_focus(False)
         self.window.connect('key-press-event', self.__on_key_press_event)
 
         self.set_open_folder()
@@ -37,13 +38,14 @@ class MENU():
 
     def __on_key_press_event(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
-        if val_name == 'a':
+        #print('key_pressed:', val_name)
+        if val_name == 'Left':
             self.resources_cl.prev_image()
-        elif val_name == 'd':
+        elif val_name == 'Right':
             self.resources_cl.next_image()
-        elif val_name == 's':
+        elif val_name == 'Down':
             self.resources_cl.save_detections()
-        elif val_name == 'w':
+        elif val_name == 'Up':
             self.resources_cl.create_rectbox()
         #print('key pressed:', val_name)
 
@@ -309,6 +311,8 @@ class MENU():
 
     def wrap_resources(self, resources_cl):
         self.resources_cl = resources_cl
+        #self.resources_cl.drawingImage.darea.connect('key-press-event', self.__on_key_press_event)
+        
 
     def __open_folder_clicked(self, button):
         dialog = Gtk.FileChooserDialog('Choose a Folder', self.window, Gtk.FileChooserAction.SELECT_FOLDER|Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
@@ -332,7 +336,9 @@ class MENU():
             self.resources_cl.prev_image()
     
     def wrap_drawing(self, drawing_cl):
+        print('drawingarea wrapped')
         self.drawing_wrapped = drawing_cl
+        
 
     def __create_rectbox(self, button):
         print('creating rectbox')

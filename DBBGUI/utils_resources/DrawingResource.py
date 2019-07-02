@@ -31,10 +31,11 @@ class DrawingEvents():
         self.draw_clicked = False
         self.draw_flag = False
 
-        self.darea.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.darea.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.KEY_PRESS_MASK)
         self.darea.connect('draw', self.__on_draw)
         self.darea.connect('motion-notify-event', self.__draw_motion)
         self.darea.connect("button-press-event", self.__drawing_clicked)
+        
         self.menuItem = LabelPop()
 
     def set_DBBNet(self, configPath, weightPath, metaPath):
