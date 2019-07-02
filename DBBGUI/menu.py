@@ -19,6 +19,8 @@ class MENU():
 
         self.resources_charged = False
 
+        self.window.connect('key-press-event', self.__on_key_press_event)
+
         self.set_open_folder()
         self.set_save_folder()
         self.set_prev_button()
@@ -32,6 +34,18 @@ class MENU():
         self.set_zoomin_button()
         self.set_zoomout_button()
         self.set_zoomfit_button()
+
+    def __on_key_press_event(self, w, e):
+        val_name = Gdk.keyval_name(e.keyval)
+        if val_name == 'a':
+            self.resources_cl.prev_image()
+        elif val_name == 'd':
+            self.resources_cl.next_image()
+        elif val_name == 's':
+            self.resources_cl.save_detections()
+        elif val_name == 'w':
+            self.resources_cl.create_rectbox()
+        #print('key pressed:', val_name)
 
     def set_open_folder(self):
         box = Gtk.Box()

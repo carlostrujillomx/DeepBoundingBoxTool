@@ -1,0 +1,7 @@
+carro
+camioneta
+motocicleta
+autobus
+trailer
+persona
+placa

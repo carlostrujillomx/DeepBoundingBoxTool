@@ -187,11 +187,15 @@ class DrawingEvents():
             temporal_dict.update({i:[label, box, color, f, rbox]})
             i += 1
         print()
-        self.objects_detected = temporal_dict
-        for key in self.objects_detected:
-            label, box, color, f, rbox = self.objects_detected.get(key)
-            print(key, label)
-        print()
+        self.objects_detected = {}
+        for key in temporal_dict:
+            label, box, color, f, rbox = temporal_dict.get(key)
+            self.objects_detected.update({key:[label, box, color, f, rbox]})
+        #self.objects_detected = temporal_dict
+        #for key in self.objects_detected:
+        #    label, box, color, f, rbox = self.objects_detected.get(key)
+        #    print(key, label)
+        #print()
 
     def __im2pixbuf(self, image):
         image = cv2.resize(image, (self.darea_width, self.darea_height))
@@ -256,6 +260,7 @@ class DrawingEvents():
             print(key, label)
         self.objects_detected.pop(iter_, None)
         self.regroup_objects()
+        self.LWindow.update_ImageLabels(self.objects_detected)
         self.darea.queue_draw()
     
     def modify_selection(self, key, new_label):

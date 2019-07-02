@@ -64,7 +64,8 @@ class CurrentFileLabels():
         self.listmodel = Gtk.ListStore(str, int)
         self.view = Gtk.TreeView(model = self.listmodel)
         self.view.set_name('NETVIEW')
-        
+        self.view.set_can_focus(False)
+
         renderText = Gtk.CellRendererText()
         renderText.set_property('editable', True)
         
@@ -74,40 +75,55 @@ class CurrentFileLabels():
 
         self.scrollWindow.add(self.view)
 
-        selection = self.view.get_selection()
-        selection.connect('changed', self.__image_view_changed)
+        self.selection = self.view.get_selection()
+        self.selection_handler = self.selection.connect('changed', self.__image_view_changed)
 
-        self.view.connect('key-press-event', self.__on_key_press_event)
+        self.key_pressed_id = self.view.connect('key-press-event', self.__on_key_press_event)
         renderText.connect('edited', self.__set_text_edited)
         
 
     def update_ImageLabels(self, objects_detected):
+        #self.view.handler_block(self.key_pressed_id)
+        self.selection.handler_block(self.selection_handler)
         self.listmodel.clear()
         for key in objects_detected:
             label, box, color, flag, rbox = objects_detected.get(key)
             self.listmodel.append([label, key])
         self.view.show_all()
         
-        selection = self.view.get_selection()
+        self.key = None
+        self.selection.handler_unblock(self.selection_handler)
+        self.selection = self.view.get_selection()
+        
     
     def wrap_drawing(self, drawingEvent):
         self.drawingEvent = drawingEvent
 
     def __image_view_changed(self, selection):
+        
         model, self.it, = selection.get_selected()
+        
         if self.it is not None:
             self.key = int(model[self.it][1])
+            print('\n\n')
+            print('it:', self.key)
+            print('\n\n')
+            #print('current_key:', self.key)
             self.drawingEvent.edit_view_selection(self.key)
             #self.drawingEvent.edit_selection(self.key)
     
     def __on_key_press_event(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
-        print('val_name:', val_name)
+        #print('val_name:', val_name)
         if val_name == 'Delete':
+            self.selection.handler_block(self.selection_handler)
             self.drawingEvent.delete_selection(self.key)
-            self.listmodel.remove(self.it)
+            #self.listmodel.remove(self.it)
             self.view.show_all()
-    
+            self.selection.handler_unblock(self.selection_handler)
+            
+            self.view.set_cursor(self.key)
+
     def __set_text_edited(self, w, p, text):
         #print('edited:', text, type(text), len(text))
         self.listmodel[p][0] = text
