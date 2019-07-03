@@ -18,7 +18,7 @@ python3 dbbt.py
 ![first prototype preview](tests/screen7.png)
 
 
-#USE TUTORIAL
+# USE TUTORIAL
 1. execute the program with:
  > python3 dbbt.py
 2. press the select Path button on the top right to select the model Path:
@@ -30,3 +30,16 @@ python3 dbbt.py
 6. Press open to open the folder
 ![images folder](tests/screen6.png)
 7. All is ready to start to work!!. 
+
+## To do list
+- [] easy selection of working labels when creating a bounding box, ie. improve popover of classes suggestion.
+- [] establish a method to save and record when an image has been processed.
+- [] create log file to remember selected folder previously and doesn't set folder paths every time the program is opened.
+- [] establish a better user experience and keep all menu buttons working
+- [] with previous steps covered, this software can be considered in an stable release.
+### To make the V2 version must be added:
+- [] VOC-PASCAL Data format: create data annotations in this format
+- [] accept others deep learning networks architectures and use with TensorFlow, Caffe, ONNX, etc, etc... im opened to suggestions. 
+
+## CONTRIBUTIONS
+if you want to contribute you can mail me to carlostrujillotmx@gmail.com
