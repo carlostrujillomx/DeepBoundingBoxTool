@@ -43,9 +43,9 @@ class MENU():
             self.resources_cl.prev_image()
         elif val_name == 'Right':
             self.resources_cl.next_image()
-        elif val_name == 'Down':
+        elif val_name == '2':
             self.resources_cl.save_detections()
-        elif val_name == 'Up':
+        elif val_name == '1':
             self.resources_cl.create_rectbox()
         #print('key pressed:', val_name)
 

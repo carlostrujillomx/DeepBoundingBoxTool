@@ -31,6 +31,9 @@ class DrawingEvents():
         self.draw_clicked = False
         self.draw_flag = False
 
+        self.motion_x = 0
+        self.motion_y = 0
+
         self.darea.add_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.KEY_PRESS_MASK)
         self.darea.connect('draw', self.__on_draw)
         self.darea.connect('motion-notify-event', self.__draw_motion)
@@ -91,19 +94,30 @@ class DrawingEvents():
         if self.pix is not None:
             Gdk.cairo_set_source_pixbuf(cr, self.pix, 0, 0)
             cr.paint()
+            if self.draw_flag:
+                cr.set_source_rgba(0,0,0,0.7)
+                cr.move_to(0, self.motion_y)
+                cr.line_to(self.darea_width, self.motion_y)
+                cr.stroke()
+                cr.move_to(self.motion_x, 0)
+                cr.line_to(self.motion_x, self.darea_height)
+                cr.stroke()
+
             if len(self.objects_detected) == 0:
                 if len(self.current_rectangle) > 0:
+                    cr.set_source_rgba(0,1,0,0.7)
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
+                    
             else:
                 if len(self.current_rectangle) > 0:
-                    cr.set_source_rgba(1,1,1,0.7)
+                    cr.set_source_rgba(0,1,0,0.7)
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.fill()
                     cr.set_line_width(3)
                     cr.rectangle(self.current_rectangle[0][0], self.current_rectangle[0][1], self.current_rectangle[0][2], self.current_rectangle[0][3])
                     cr.stroke()
-                    
+
                 for key in self.objects_detected:
                     label, box, color, flag, rbox = self.objects_detected.get(key)
                     x,y,w,h = box
@@ -129,7 +143,6 @@ class DrawingEvents():
         if self.save_folder_path is not None:
             txtfile = self.save_folder_path+'/'+filewoext+'.txt'
             filexist = os.path.exists(txtfile)
-        print('current file:', txtfile)
         if not filexist:
             image = cv2.imread(filename)
             if self.DBB_Net is not None:
@@ -162,7 +175,6 @@ class DrawingEvents():
             y_yolo = float(y_yolo)
             wr = float(wr)
             hr = float(hr)
-            #print(id_class, x_yolo, y_yolo, wr, hr, type(id_class), type(x_yolo), type(wr), type(hr))
             
             xup = x_yolo * self.darea_width
             yup = y_yolo*self.darea_height
@@ -181,23 +193,15 @@ class DrawingEvents():
     def regroup_objects(self):
         i = 0
         temporal_dict = {}
-        #print('old:', self.objects_detected)
         for key in self.objects_detected:
             label, box, color, f, rbox = self.objects_detected.get(key)
-            #print(key, sep=' ')
             temporal_dict.update({i:[label, box, color, f, rbox]})
             i += 1
-        print()
         self.objects_detected = {}
         for key in temporal_dict:
             label, box, color, f, rbox = temporal_dict.get(key)
             self.objects_detected.update({key:[label, box, color, f, rbox]})
-        #self.objects_detected = temporal_dict
-        #for key in self.objects_detected:
-        #    label, box, color, f, rbox = self.objects_detected.get(key)
-        #    print(key, label)
-        #print()
-
+        
     def __im2pixbuf(self, image):
         image = cv2.resize(image, (self.darea_width, self.darea_height))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -258,7 +262,7 @@ class DrawingEvents():
     def delete_selection(self, iter_):
         for key in self.objects_detected:
             label, box, color, f, rbox = self.objects_detected.get(key)
-            print(key, label)
+            #print(key, label)
         self.objects_detected.pop(iter_, None)
         self.regroup_objects()
         self.LWindow.update_ImageLabels(self.objects_detected)
@@ -285,7 +289,7 @@ class DrawingEvents():
         self.update_labels()
 
     def create_rectbox(self):
-        self.draw_flag = True
+        self.draw_flag = not self.draw_flag
     
     def clear_current_rectangle(self):
         self.current_rectangle.clear()
@@ -296,12 +300,14 @@ class DrawingEvents():
         print('val name:', val_name)
 
     def __draw_motion(self, w, e):
+        self.motion_x = e.x
+        self.motion_y = e.y
         if self.draw_clicked:
             x,y,w,h = self.current_rectangle[0]
             w = e.x - x
             h = e.y - y
             self.current_rectangle.insert(0, [x,y, w, h])
-            self.darea.queue_draw()
+        self.darea.queue_draw()
         
     def __drawing_clicked(self, w, e):
         if self.draw_flag:
@@ -326,7 +332,8 @@ class DrawingEvents():
             justfile = filewoext.split('/')[-1]
             jpgimage2save = self.save_folder_path+'/'+justfile+'.jpg'
             image = cv2.imread(self.filename)
-            print('source:',self.filename, 'dst:', jpgimage2save, image.shape)
+            print('saved')
+            #print('source:',self.filename, 'dst:', jpgimage2save, image.shape)
             cv2.imwrite(jpgimage2save, image)
             
             file_ = filewoext.split('/')[-1]
@@ -436,7 +443,7 @@ class LabelPop():
     
     def __entry_key_pressed(self, w, e):
         val_name = Gdk.keyval_name(e.keyval)
-        print('val_name:', val_name)
+        #print('val_name:', val_name)
         if val_name == 'Return':
             label = self.LEntry.get_text()
             self.drawingImage.add_object(label)
