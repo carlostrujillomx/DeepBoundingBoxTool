@@ -9,8 +9,6 @@ Software dependencies:
 *cairo
 *darknet
 
-The software is not finished yet, i'm working on this
-
 The execution is:
 python3 dbbt.py
 
